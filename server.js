@@ -22,7 +22,6 @@ url = url.replace("<password>", process.env.DB_PASSWORD);
 mongoose.connect(url, {
   serverSelectionTimeoutMS: 10000 /**Timeout after 10sec */,
 });
-
 /** Handle the database connection errors. */
 const db = mongoose.connection;
 db.on("connected", () => {
