@@ -2,6 +2,8 @@ const User = require('../models/userModel');
 const catchAsync = require('../utilities/catchAsync');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utilities/appError');
+const { mailHandler } = require('../utilities/sendMail');
+const crypto = require('node:crypto');
 const { promisify } = require('node:util');
 /** Signs the jwt token */
 const signToken = (user_id) => {
@@ -65,7 +67,7 @@ module.exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect Password or Email!'));
   }
 
-  createToken(user_acc, 200, res)
+  createToken(user_acc, 200, res);
 });
 
 /** Protects a route from unlogged in users */
@@ -108,3 +110,63 @@ module.exports.restricted = (...role) => {
     next();
   };
 };
+
+module.exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const user_mail = req.body.email;
+
+  const user_document = await User.findOne({ email: user_mail });
+
+  if (!user_document || !user_mail) {
+    return next(new AppError('Wrong Credentials!', 401));
+  }
+  const reset_token = user_document.generateResetToken();
+  await user_document.save({ validateBeforeSave: false });
+
+  const reset_url = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${reset_token}`;
+
+  const message = `Forgot Password? Click on the link below to submit your request. If you did not request this Please ensure your account is not being breached or ignore.`;
+
+  try {
+    await mailHandler({
+      from: process.env.MAIL_USER,
+      to: user_document.email,
+      subject: 'Password Reset',
+      message,
+    });
+
+    res.status(200).json({
+      status: 'Success',
+      reset_token,
+      reset_url,
+    });
+  } catch (err) {
+    user_document.passwordResetToken = undefined;
+    user_document.passwordResetExpiration = undefined;
+    await user_document.save({ validateBeforeSave: false });
+
+    return next(new AppError('Error on sending mail!', 500));
+  }
+});
+
+module.exports.resetPassword = catchAsync(async (req, res, next) => {
+  const token = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  const user_document = await User.findOne({
+    passwordResetToken: token,
+    passwordResetExpire: { $gte: Date.now() },
+  });
+
+  if (!user_document) {
+    return next(new AppError('Invalid link or token', 400));
+  }
+  user_document.password = req.body.password;
+  user_document.passwordResetExpire = undefined;
+  user_document.passwordResetToken = undefined;
+  await user_document.save({ validateBeforeSave: false });
+  
+  createToken(user_document, 200, res);
+});
