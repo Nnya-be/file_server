@@ -106,7 +106,8 @@ module.exports.protect = catchAsync(async (req, res, next) => {
 
 module.exports.restricted = (...role) => {
   return async (res, req, next) => {
-    console.log(req);
+    if (!role.includes(req.user.role))
+      return next(new AppError('Permission denied for this route', 403));
     next();
   };
 };
@@ -167,6 +168,26 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
   user_document.passwordResetExpire = undefined;
   user_document.passwordResetToken = undefined;
   await user_document.save({ validateBeforeSave: false });
-  
+
   createToken(user_document, 200, res);
+});
+
+module.exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user_document = await User.findById(req.user.id).select('+password');
+  if (
+    !(await user_document.comparePasswords(
+      req.body.oldPassword,
+      user_document.password
+    ))
+  ) {
+    return next(new AppError('Invalid Password!', 401));
+  }
+  user_document.password = req.body.newPassword;
+  user_document.passwordConfirm = req.body.passwordConfirm;
+  await user_document.save();
+
+  res.status(200).json({
+    status: 'success',
+  });
+ 
 });
