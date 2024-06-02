@@ -30,7 +30,7 @@ db.on("connected", () => {
 db.on("error", console.error.bind(console, "Database Connection error"));
 
 /** Making the server listen to requests. */
-const port = process.env.PORT;
+const port = process.env.PORT | 3000;
 
 app.listen(port, () => {
   console.log(`The server is listening on port ${port}`);
