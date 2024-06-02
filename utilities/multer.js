@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   // Accept files with MIME type 'application/pdf'
-  if (file.mimetype === 'application/pdf') {
+  if (file.mimetype === 'file/pdf') {
     cb(null, true);
   } else {
     cb(new Error('Invalid file type. Only PDF files are allowed.'), false);
