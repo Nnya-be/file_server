@@ -12,12 +12,12 @@ module.exports.mailHandler = async (options) => {
   });
 
   const message = {
-    from: options.from,
+    from: process.env.MAIL_USER,
     to: options.to,
     subject: options.subject,
-    message: options.message,
-    url: options.url,
-    attachment: options.attachment,
+    message: options.message | '',
+    url: options.url | '',
+    attachment: options.attachment | '',
   };
 
   await transpoter.sendMail(message);

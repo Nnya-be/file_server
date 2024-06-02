@@ -20,14 +20,16 @@ const fileSchema = new mongoose.Schema({
   mimetype: String,
   size: Number,
   numberDownloads: {
-    type: Number, 
-    default:0
+    type: Number,
+    default: 0,
+    select: false,
   },
 
   mailSent: {
     type: Number,
-    default: 0
-},
+    default: 0,
+    select: false,
+  },
 });
 
 const File = new mongoose.model('File', fileSchema);
