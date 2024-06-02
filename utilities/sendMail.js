@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const AppError = require('../utilities/appError');
 
 module.exports.mailHandler = async (options) => {
   /** Creating the nodemailer transport configuration */
@@ -20,5 +21,10 @@ module.exports.mailHandler = async (options) => {
     attachment: options.attachment | '',
   };
 
-  await transpoter.sendMail(message);
+  await transpoter
+    .sendMail(message)
+    .then(console.log('sent'))
+    .catch((err) => {
+      console.log('sent');
+    });
 };

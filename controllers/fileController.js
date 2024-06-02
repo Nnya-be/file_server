@@ -15,14 +15,13 @@ module.exports.getAllFiles = catchAsync(async (req, res, next) => {
 });
 
 module.exports.getFile = catchAsync(async (req, res, next) => {
-  const { title, id } = req.body;
-  if (!title && !id) {
-    return next(new AppError('Specify file title or id', 400));
+  const id = req.params.file_id;
+  console.log(req.params);
+  if (!id) {
+    return next(new AppError('Specify file  id', 400));
   }
 
-  let file = title
-    ? await File.find({ title: title })
-    : await File.findById(id);
+  let file = await File.findById(id);
   if (!file) {
     return next(new AppError('File not found', 404));
   }
@@ -51,7 +50,7 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
 });
 
 module.exports.deleteFile = catchAsync(async (req, res, next) => {
-  const file_id = req.query.id;
+  const {file_id} = req.params;
   if (!file_id) {
     return next(new AppError('Please provide a file id', 400));
   }
@@ -79,11 +78,14 @@ module.exports.searchFile = catchAsync(async (req, res, next) => {
   if (!query) {
     return next(new AppError('No query filed found!', 400));
   }
-  query = new RegExp(query, 'i');
-  const files = await File.find({
-    $or: [{ title: regex }, { description: regex }],
-  });
-  if (!files) {
+  let { title } = query;
+  if (!title) {
+    return next(new AppError('No title to search!', 400));
+  }
+  title = new RegExp(title, 'i');
+  const files = await File.find({ title });
+
+  if (!files || (Array.isArray(files) && files.length === 0)) {
     return next(new AppError('No file found with this details', 404));
   }
 
@@ -94,54 +96,63 @@ module.exports.searchFile = catchAsync(async (req, res, next) => {
 });
 
 module.exports.getFileStats = catchAsync(async (req, res, next) => {
-  const { id } = req.body;
+  const id = req.params.file_id;
   if (!id) {
     return next(new AppError('Specify the id of the file!'), 400);
   }
 
-  const file = File.findById({ id }).select('+NumberDownloads +mailSent');
+  const file = await File.findById(id).select('+numberDownloads +mailSent');
   if (!file) {
     return next(new AppError('No file found for the id!', 404));
   }
 
+  console.log(file);
+
   res.status(200).json({
     status: 'success',
-    donwloads: file.NumberDownloads,
-    emails: file.mailSent,
+    download: file.numberDownloads,
+    mails: file.mailSent,
   });
 });
 
 module.exports.downloadFile = catchAsync(async (req, res, next) => {
-  const filename = req.params.filename;
-  if (!filename) {
+  const id = req.params.file_id;
+
+  if (!id) {
     return next(new AppError('No file name Specified', 400));
   }
 
-  const file = await File.findOne({ filename: filename });
+  const file = await File.findById(id).select('+numberDownloads');
   if (!file) {
     return next(new AppError('File not found', 404));
   }
-
-  const filePath = path.join(__dirname, 'uploads', filename);
+  const filename = file.filename;
+  const filePath = path.join(__dirname, '..', 'uploads', filename);
+  // console.log(filePath);
   res.download(filePath, (err) => {
     if (err) {
       return next(new AppError('Error downloading file', 500));
     }
   });
+  file.numberDownloads++;
+  file.save();
 });
 
 module.exports.sendFile = catchAsync(async (req, res, next) => {
-  const filename = req.params.filename;
-  const address = req.params.address;
-  if (!filename || !address) {
+  const id = req.params.file_id;
+  const address = req.body.email;
+
+  // console.log(req.params, req.body);
+  if (!id || !address) {
     return next(new AppError('No file id or email Specified', 400));
   }
-  const file = await File.findOne({ filename: filename });
+  console.log(id);
+  const file = await File.findById(id).select('+mailSent');
   if (!file) {
     return next(new AppError('File not found', 404));
   }
-
-  const filePath = path.join(__dirname, 'uploads', filename);
+  const filename = file.filename;
+  const filePath = path.join(__dirname, '..', 'uploads', filename);
   const options = {
     to: address,
     subject: 'File',
@@ -153,6 +164,8 @@ module.exports.sendFile = catchAsync(async (req, res, next) => {
     ],
   };
   mailHandler.mailHandler(options);
+  file.mailSent++;
+  file.save();
   res.status(200).json({
     status: 'success',
   });
