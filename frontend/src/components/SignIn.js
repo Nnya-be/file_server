@@ -4,15 +4,17 @@ import * as Yup from 'yup';
 // import { useNavigate } from 'react-router-dom';// Assuming you have some global styles
 
 const SignupSchema = Yup.object().shape({
-  name: Yup.string().required('First name is required'),
-  password: Yup.string().required('Password is required'),
+  email: Yup.string()
+    .email('Invalid Email!')
+    .required('First name is required!'),
+  password: Yup.string().required('Password is required!'),
 });
 
 const SignIn = () => {
   //   const navigate = useNavigate();
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    console.log(values)
+    console.log(values);
     try {
       // Make an API call to submit the form data
       const response = await fetch(
@@ -26,9 +28,8 @@ const SignIn = () => {
         }
       );
 
-      console.log(values);
       const data = await response.json();
-
+      console.log(data);
       // Check for successful response
       if (response.ok) {
         // Navigate to the next page
@@ -84,7 +85,7 @@ const SignIn = () => {
             </div>
           </div>
           <Formik
-            initialValues={{ name: '', password: '' }}
+            initialValues={{ email: '', password: '' }}
             validationSchema={SignupSchema}
             onSubmit={handleSubmit}
           >
@@ -93,25 +94,25 @@ const SignIn = () => {
                 <div className="space-y-3">
                   <div>
                     <label
-                      htmlFor="name"
+                      htmlFor="email"
                       className="block mb-3 text-sm font-medium text-black text-left"
                     >
-                      First name
+                      Email Address
                     </label>
                     <Field
                       type="text"
-                      id="name"
-                      name="name"
-                      placeholder="Your name"
+                      id="email"
+                      name="email"
+                      placeholder="example@email.com"
                       className={`block w-full h-12 px-4 py-2 text-blue-500 mb-8 duration-200 border rounded-lg appearance-none bg-chalk border-zinc-300 placeholder-zinc-300 ${
-                        touched.name && errors.name
+                        touched.email && errors.email
                           ? 'border-red-500 '
                           : 'focus:border-zinc-300'
                       } focus:outline-none focus:ring-zinc-300 sm:text-sm`}
                     />
-                    {touched.name && errors.name && (
+                    {touched.email && errors.email && (
                       <div className="text-red-500 text-sm -mt-8">
-                        {errors.name}
+                        {errors.email}
                       </div>
                     )}
                   </div>
