@@ -55,16 +55,16 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
 module.exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return next(new AppError('Incorrect Password or Email!'));
+    return next(new AppError('Incorrect Password or Email!', 400));
   }
   const user_acc = await User.findOne({ email }).select('+password');
   if (!user_acc) {
-    return next(new AppError('Incorrect Password or Email!'));
+    return next(new AppError('Incorrect Password or Email!', 400));
   }
 
   const match = await user_acc.comparePasswords(password, user_acc.password);
   if (!match) {
-    return next(new AppError('Incorrect Password or Email!'));
+    return next(new AppError('Incorrect Password or Email!', 400));
   }
 
   createToken(user_acc, 200, res);
@@ -189,5 +189,4 @@ module.exports.updatePassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
   });
- 
 });
