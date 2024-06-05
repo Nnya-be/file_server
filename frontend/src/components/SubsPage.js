@@ -18,7 +18,7 @@ const SendEmail = () => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await axios.get(
+      const response = await axios.post(
         `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}`,
         {
           params: {
