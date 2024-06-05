@@ -50,7 +50,7 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
 });
 
 module.exports.deleteFile = catchAsync(async (req, res, next) => {
-  const {file_id} = req.params;
+  const { file_id } = req.params;
   if (!file_id) {
     return next(new AppError('Please provide a file id', 400));
   }
@@ -141,7 +141,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   const address = req.body.email;
-
+  console.log(req);
   // console.log(req.params, req.body);
   if (!id || !address) {
     return next(new AppError('No file id or email Specified', 400));
