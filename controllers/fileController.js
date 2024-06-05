@@ -140,9 +140,9 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
-  const address = req.body.email;
+  const address = req.params.email;
   console.log(req.body);
-  conosle.log(id, address);
+  console.log(id, address);
   // console.log(req.params, req.body);
   if (!id || !address) {
     return next(new AppError('No file id or email Specified', 400));

@@ -21,7 +21,7 @@ const SendEmail = () => {
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}`,
         {
-          body: {
+          params: {
             email: values.email,
           },
           headers: {
