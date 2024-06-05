@@ -25,7 +25,7 @@ const SendEmail = () => {
             email: values.email,
           },
           headers: {
-            Authorization: `Bearer token ${Cookies.get('jwt')}`,
+            Authorization: `Bearer ${Cookies.get('jwt')}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
