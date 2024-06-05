@@ -16,7 +16,7 @@ module.exports.getAllFiles = catchAsync(async (req, res, next) => {
 
 module.exports.getFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
-  console.log(req.params);
+  // console.log(req.params);
   if (!id) {
     return next(new AppError('Specify file  id', 400));
   }
