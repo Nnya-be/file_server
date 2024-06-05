@@ -43,10 +43,11 @@ const SendEmail = () => {
   const handleDownload = async () => {
     try {
       const token = Cookies.get('jwt');
+      console.log(token);
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/download/${file._id}`,
         {
-          Headers: { Authorization: `Bearer token ${token}` },
+          headers: { Authorization: `Bearer token ${token}` },
         }
       );
       navigate('/');

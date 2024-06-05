@@ -16,9 +16,9 @@ const AuthProvider = ({ children }) => {
     setUser(userData.data.user.role);
     // console.log(userData.data.user.role);
     setToken(userData.token);
-    // console.log(userData.token);
+    console.log(userData.token);
     // Example: Save token to local storage or cookie
-    Cookies.set('jwt', userData.token, { expires: 1 });
+    Cookies.set('jwt', userData.token);
     Cookies.set('user', userData.data.user.role);
   };
   const logout = () => {
