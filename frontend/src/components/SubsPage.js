@@ -17,20 +17,18 @@ const SendEmail = () => {
   });
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    const token = Cookies.get('jwt');
     try {
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}`,
         {
-          body: {
-            email: values.email,
-          },
-          Headers: {
-            Authorization: `Bearer token ${token}`,
+          headers: {
+            Authorization: `${Cookies.get('jwt')}`,
             'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
         }
       );
+
       console.log(response);
 
       setSubmitting(false);

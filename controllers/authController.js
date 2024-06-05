@@ -83,7 +83,11 @@ module.exports.protect = catchAsync(async (req, res, next) => {
   if (!token) {
     return next(new AppError('Please login to access this route.', 401));
   }
-  const decoded_token = jwt.verify(token, process.env.JWT_SECRET);
+  console.log(token);
+  const decoded_token = await promisify(jwt.verify)(
+    token,
+    process.env.JWT_SECRET
+  );
 
   /** extracts the userid and query for it */
   const userAcc = await User.findById(decoded_token.user_id);
