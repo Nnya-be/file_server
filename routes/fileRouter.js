@@ -20,7 +20,7 @@ router.get(
   authController.restricted('admin'),
   fileController.getFileStats
 );
-router.get(
+router.post(
   '/download/:file_id',
   authController.protect,
   fileController.downloadFile
