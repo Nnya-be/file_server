@@ -16,7 +16,11 @@ const HomePage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const { setFile, setFileId } = useFile();
+  const navigate = useNavigate();
 
+  if (!Cookies.get('jwt')) {
+    navigate('/login');
+  }
   const link =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAmVBMVEWzCwD////19fWyAACvAAD3+vr5///07u33+/verqu4Kye1GhazAADhtrS6KiTXmpfv3t3BSEO/UE7s1dP78O/ly8v25OP99/bgq6m2FAz88/LFV1Puzs3qxMLv0dDfpqTThYLIY2C7NTHXjYrOdHG/Qz+5IxzYk5DQe3jy6OfYnpzMbGm7KyXnxcS5HhW4FQm9OzfGXVm/UVDPdotwAAAJwElEQVR4nO2da3eiOhSG0R3wUlRUCtZ616LW6tjz/3/cgSTATgjqtOMtK++3jp01PCbZ9zCWZWRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZPRAAiBUAPd+kiuJWPPWZDIZteZvREdGgJlf4RpOI3Lv5/nngkO/gjTc6YYIL35F1FIzRBJUZOmFSDoFwErlXSNzA29DBWGgESFZcqiWRb5GOu5T4Ha0FftBIF5K6Lu6rCIsOFKUEME8W8SVNoQ7BjSmuxLc7FCOdNmmZMCAZmzJyCRbRF3WkIwZzxcn3GeE35ogpovG92S6pLE+NdmmPKAJU8JpRjjWhZDFpNsioa8X4SQlzM9h6N73yf6VZMI8qqkc9DA1EiHk3qLS1IowPXRuoB+hh20pHCr6EY6wP8yiVJ0Ix9ispFGqVoTcAbKknnwiwj96EMKK4azpNk1XVCd/CF3GM2CEqOoWahLTQDOkPB7lcdEm7WtCmHpAuidRiq9P5J1Foj2QCotTbQh5rS0prqEMX6NqG3wzoH0M5OLSaVcPZ5EXn/w/AO8IsKKJs7DyrfkOWXGYEuuySWPCdWpZhGO414cwjbYDcsBdNm1MqZUHMu0ePoZzXQyNlVcQOzjs1iWzoEpD0wD3ugN9TGksKDaB9YnZqFCRNNNGK0L4KBJqE9Ewkb4M6OsFaJGZTNjSapPGckOJcKbZGuKmGtObboQQiYCBbpvUAksk1CkoZZLnoj5026TyaJtGuSFXGpmm0itkSySHbTplTkzuVgAcRroRpuW2THqF3bFISyIMtRnbY4JCzMb7NNoobbBhHbVaRKGIyKVN4ymRMJ2QSZuuhVUyyV4JNaq1wVZFmM0QPb+ErijWTBdEPJwgSpMEA9qSM1xlPwd6+H2ho5ZgoaqUHn5fvvTUIfmdi4oOl9jkzLDyBfCV71sNkgzZziQ+Au1T7+mPYiGe2SVECPvpK8NphztVKN+c4fNuzys5nuF3LPDpfG5rI4yTJkqTJry278+MiCfzUzvDP8mPYvjEuSIcpSXMb+QB6gsr0wyguuXT/kSyq/BR7x7a+Z8PLYYC6MULb1QuPPR7GMAVAcVuBUEFuOBAQdq91Ww9bXle4AU+VeB5o8Zy03XJQ76JQRjqTvQiPCVumwabzng7LBSs8o3cn34/HiRY0hPLtXx18l+u8Ts8ltmVvb0wnBCfL/c4l9+1cE791SOtI1jS82euIqaD3nKsLm6cYzw+zjKSjfRwtB2T2MZjpzTtv0Crh0GUA7Z+4gvcj+Ve/eC5wnA4pHZ05Pm+wvo8SiRbXEISrVqK8S/8JbQ6m1VvEbncLcZyo+5qORb/2oOsIpFOoT/rlzsDrlHi9qRIhkYB7goPiD9GX6ewhBcpnJfYShI93PCtahxRLb8/RW6l4aqfHkdAlfAB1vCyJRxOBqskICPv+Qbe7tTLSPBfvH+XHM4v4XC87L6kQTVZoN8fHVSMQs3u/uZULpIW6SIxZQChTTyIiozCGt79IAKU0/mTZQ8UQTTZIFMbDhbSb4iXUe5MGB+rkczFFTS+o7IUgRyFIdTxHP8igIc/vOcrNYDAsuQMTtZNOJXMghSq+9MjYf4RSCS2ke/XtgKymCr9ejiZ/Tmf35G2tPj+eNM9Nj/m8izH4k62FEhPGVIP96vDZekrkF1xAxS/sjsNAQD5VkwkJE94/ItCC7iz80njXV72FvMVptW5/tJ5EXKOsXGHJQQyL+P7wbvnCFmpdwPT+PYrGJ+/MvdQ+VnVHsjHZ1lUNL19bZFYp1L2H760LPYrx0/FSo66N9+i4IpeLJRwfz42k6TB751WEHJjGg5Ha2XIelXJ5t1fu+IX3/ndV55QQnTsxUri9NtX2shBWDF/9ibdjvkn4xYA92piAFlhbxzO4sPzJfrn535NKbh4AcN1UpCW2mn38Fz/TqSLy4UD+oJnaY8+9wU1gsdiR0dqA6Ap2tGnfjMizuL9tEIGYmDzzCNPgO+iZeUx6VbF9iHKmj8UqqpkC2iRubhHe88MmBvRcVbflDu+P6iHwf08nyjU2ZxlUQZIh1A9Apw3JArdeXCtlzbTQVXtgMIF/qt9EfluDNEojHRL1G+r/n3YNQb7V6r956aLW7rwMvG2NaZtfz87ysW2l8CTdC1LBtmrD4eoWynfZf5W/uuk4dip6k7VW+fGCJo1u5oq/rT6+i0wui9OVZTtXYkwq4j5aHRStjIldw1IwxYesl6bZ8e4WZMAnDHeh0XCavVaa8gbXXiUiUhTpGUThzJhteqkBqlAGPNv0SS4ivA6JzEbVUNnEBbiq/P7Zf8yJ6zXHafOWZ0dCIRbz9vWHfahXcuzS05oO0jXubKRegq0TBCJpSO/9OWynHA9m686rfisJaq5iNBugeu+NHd7xoiOGiO0B8durusY07RDkn9/JBIzplBpRhFhLc7Uk8ZugyLWWZKcEiZvBIs//fAoopPV7xlh/MsAV3abruzuSE/63x1OXKPghOwrADKlFB5IhPRHq08/zPZpRngdLCROmL3HSugZlfsJ/suYMA4StnSffrC8RCC04E+tipFuR8gbZwHh6yC3FE4BSoT8R2ZrZMI4PaOmxeOhzO0I017slAZeO7k8fXrgVyKEZb2c0CJ0hR3ulG5ImKZIo9lmKldtwzPVTJlw55wipMe0Prs1oZzHYwXnHJS8Szun1hDeHfQntyMsvoglU+us/ZYJW3SVvksIF8mn9l4ivLazwJG3tEMvuGQv2VJmLtmPCsIDPYgeJrQH3R7Xf9e73Adt1dzkaHHB/pH8IV1C+1X2+Jk8GsZhQhy1lcaGvxe4hVZTeNloax7TxIY42tOYxtmoPD6VgjCXfUXCpNgtLGMwI5cZgDQu3ayWAyn0fCzC+FFh1wqSYCYMJuvehXw4t6jbPLewjzi3wISu4hwmyXGaQV+XMFlHt9ntdZt/dU+gkB/a1bRqrLA0zWrBlla3/Uyt6xes/t5kS4S208/mRhSEPaU/vL63+I04Ia/T1PDovSKmWSeWqL6+ucf/jTghrbV1VsLsmoKQ5k9O99ZR26/EvYWlqJcWCKHNDh7/8bkIVUWAYvbE4oG0BakfIZmzI5t2P7QjJN0a9hW6EQKQOauA25k30YgQwI3mryyAcfJ8RRfCau01jlZqvCJcR9PO2hDSaICHPA4edtaHMBPq2iTSjdB2tp/iGMBzEX6pCKNalr1XvfFK/k/mY8JE979LclqkkTylre4PNxcL1nZZtF1Fl9uNP18c327wlL/S4SNWyaT9uZbLw2ZMop7kMY2MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjE7of3Y/mjIKuPIVAAAAAElFTkSuQmCC';
 
@@ -33,7 +37,9 @@ const HomePage = () => {
       setSubmitting(false);
       // console.log(response);
       // console.log(JSON.stringify(response.data.files));
-      setFile(response.data.files);
+      const all = response.data.files;
+
+      setFile(all[0]);
       // Cookies.set('file', response.data.files);
       navigate('/subs');
     } catch (err) {
@@ -43,7 +49,6 @@ const HomePage = () => {
     }
   };
 
-  const navigate = useNavigate();
   // Fetch data from the server when the component mounts
   useEffect(() => {
     fetch('https://file-server-oj1g.onrender.com/api/v1/files')
@@ -93,7 +98,7 @@ const HomePage = () => {
               Lizzy's Enterprise
             </div>
             <div className="flex items-center justify-end w-full">
-              <button
+              {/* <button
                 onClick={() => setCartOpen(!cartOpen)}
                 className="text-gray-600 focus:outline-none mx-4 sm:mx-0"
               >
@@ -108,7 +113,7 @@ const HomePage = () => {
                 >
                   <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
-              </button>
+              </button> */}
 
               <div className="flex sm:hidden">
                 <button
