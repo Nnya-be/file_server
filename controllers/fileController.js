@@ -140,8 +140,8 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
-  const address = req.body.email;
-  console.log(req.params);
+  const address = req.params.email;
+  console.log(req.params, req.params);
   console.log(id, address);
   // console.log(req.params, req.body);
   if (!id || !address) {
