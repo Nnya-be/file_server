@@ -20,10 +20,10 @@ router.get(
   authController.restricted('admin'),
   fileController.getFileStats
 );
-router.post(
+router.get(
   '/download/:file_id',
   authController.protect,
   fileController.downloadFile
 );
-router.get('/send/:file_id', authController.protect, fileController.sendFile);
+router.podt('/send/:file_id', authController.protect, fileController.sendFile);
 module.exports = router;
