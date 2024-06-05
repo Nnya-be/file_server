@@ -77,7 +77,9 @@ module.exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    token = req.headers.authorization.split(' ').at[-1];
+    const [first, second, third] = req.headers.authorization.split(' ');
+    token = third ? third : second;
+    console.log(token);
   }
   /** Checks for the token existance. */
   if (!token) {
