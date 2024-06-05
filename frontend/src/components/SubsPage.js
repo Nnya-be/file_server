@@ -19,7 +19,7 @@ const SendEmail = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await axios.get(
-        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}&${values.email}`,
+        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}/${values.email}`,
         {
           headers: {
             Authorization: `Bearer ${Cookies.get('jwt')}`,

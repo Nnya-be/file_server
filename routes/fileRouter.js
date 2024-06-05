@@ -25,5 +25,9 @@ router.get(
   authController.protect,
   fileController.downloadFile
 );
-router.get('/send/:file_id&address', authController.protect, fileController.sendFile);
+router.get(
+  '/send/:file_id/:email',
+  authController.protect,
+  fileController.sendFile
+);
 module.exports = router;
