@@ -24,7 +24,7 @@ const fileSchema = new mongoose.Schema({
     default: 0,
     select: false,
   },
-
+  driveId: Object,
   mailSent: {
     type: Number,
     default: 0,

@@ -8,12 +8,17 @@ router.get('/:file_id', fileController.getFile);
 router.get('/', fileController.getAllFiles);
 router.post(
   '/upload',
+  upload.single('file'),
   authController.protect,
   authController.restricted('admin'),
-  upload.single('file'),
   fileController.uploadFile
 );
-router.delete('/delete/:file_id', fileController.deleteFile);
+router.delete(
+  '/:file_id',
+  authController.protect,
+  authController.restricted('admin'),
+  fileController.deleteFile
+);
 router.get(
   '/getStats/:file_id',
   authController.protect,
@@ -25,9 +30,5 @@ router.get(
   authController.protect,
   fileController.downloadFile
 );
-router.get(
-  '/send/:file_id/:email',
-  authController.protect,
-  fileController.sendFile
-);
+router.get('/send/:file_id', authController.protect, fileController.sendFile);
 module.exports = router;

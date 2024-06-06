@@ -4,7 +4,18 @@ const AppError = require('../utilities/appError');
 const mailHandler = require('../utilities/sendMail');
 const fs = require('node:fs');
 const path = require('node:path');
+const { google } = require('googleapis');
+const stream = require('node:stream');
 
+const KEYFILEPATH = path.join(__dirname, '..', 'creed.json');
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const auth = new google.auth.GoogleAuth({
+  keyFile: KEYFILEPATH,
+  scopes: SCOPES,
+});
+const driveService = google.drive({ version: 'v3', auth });
+const parentFolderId =
+  '0B4IadQAzFuYDfl9FQVlKMkZRbEppR1luMFpLWUdpNGJFZWozaG9SY2lmSmVTWGdQMU9lcmM';
 module.exports.getAllFiles = catchAsync(async (req, res, next) => {
   const files = await File.find();
 
@@ -33,7 +44,51 @@ module.exports.getFile = catchAsync(async (req, res, next) => {
 });
 
 module.exports.uploadFile = catchAsync(async (req, res, next) => {
-  const { title, description } = req.body;
+  const file = req.file;
+  // console.log(file);
+
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(file.buffer); // Ensure this ID is correct and accessible
+
+  const { title, description } = req.body; // Ensure title and description are passed in the request body
+
+  try {
+    const response = await driveService.files.create({
+      media: {
+        mimeType: file.mimetype,
+        body: bufferStream,
+      },
+      requestBody: {
+        name: file.originalname,
+        parents: [parentFolderId],
+      },
+      fields: 'id, name',
+    });
+
+    // console.log(response.data.id);
+
+    const newFile = new File({
+      filename: file.originalname,
+      title,
+      description,
+      mimetype: file.mimetype,
+      size: file.size,
+      driveId: response.data.id, // Save the Google Drive file ID
+    });
+
+    await newFile.save();
+
+    res.status(201).json({
+      status: 'created',
+      data: newFile,
+    });
+  } catch (error) {
+    // console.error(error);
+    next(new AppError(err, 400)); // Forward the error to the global error handler
+  }
+});
+
+/* const { title, description } = req.body;
   console.log(title, description);
   const file = new File({
     filename: req.file.filename,
@@ -47,30 +102,33 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
   });
-});
+  */
 
 module.exports.deleteFile = catchAsync(async (req, res, next) => {
   const { file_id } = req.params;
   if (!file_id) {
     return next(new AppError('Please provide a file id', 400));
   }
-  const file = await File.findById(file_id);
+  const file = await File.findOne({ driveId: file_id });
   if (!file) {
     return next(new AppError('File not found', 404));
   }
 
-  const filePath = path.join(__dirname, '../uploads', file.filename);
-
-  fs.unlink(filePath, async (err) => {
-    if (err) {
-      return next(new AppError('Failed to delete file', 500));
-    }
-
-    await file.deleteOne();
-    res.status(204).json({
-      status: 'success',
+  try {
+    await driveService.files.delete({
+      fileId: file_id,
     });
-  });
+
+    // If you also want to remove the file reference from your database
+    await file.deleteOne();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'File deleted successfully',
+    });
+  } catch (error) {
+    next(new AppError(error, 400)); // Forward the error to the global error handler
+  }
 });
 
 module.exports.searchFile = catchAsync(async (req, res, next) => {
@@ -122,52 +180,121 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     return next(new AppError('No file name Specified', 400));
   }
 
-  const file = await File.findById(id).select('+numberDownloads');
+  const file = await File.findOne({ driveId: id }).select('+numberDownloads');
   if (!file) {
     return next(new AppError('File not found', 404));
   }
-  const filename = file.filename;
-  const filePath = path.join(__dirname, '..', 'uploads', filename);
-  // console.log(filePath);
-  res.download(filePath, (err) => {
-    if (err) {
-      return next(new AppError('Error downloading file', 500));
-    }
-  });
-  file.numberDownloads++;
-  file.save();
+  try {
+    const response = await driveService.files.get(
+      { fileId: id, alt: 'media' },
+      { responseType: 'stream' }
+    );
+
+    const filePath = path.join(__dirname, '..', 'tmp', file.filename);
+
+    // Create a write stream to a temporary file
+    const dest = fs.createWriteStream(filePath);
+
+    // Pipe the response stream to the file
+    await new Promise((resolve, reject) => {
+      response.data.pipe(dest);
+      response.data.on('end', resolve);
+      response.data.on('error', reject);
+    });
+
+    // Increment the download count
+    file.numberDownloads++;
+    await file.save();
+
+    // Use res.download to trigger file download
+    res.download(filePath, file.filename, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        return next(err); // Forward the error to the global error handler
+      }
+      console.log('Download complete');
+      // Optionally, you can delete the temporary file after download
+      fs.unlinkSync(filePath);
+    });
+  } catch (error) {
+    console.error('Error fetching file from Google Drive:', error);
+    next(error); // Forward the error to the global error handler
+  }
 });
 
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
-  const address = req.params.email;
-  console.log(req.params, req.params);
-  console.log(id, address);
-  // console.log(req.params, req.body);
+  const address = req.body.email;
+
   if (!id || !address) {
-    return next(new AppError('No file id or email Specified', 400));
+    return next(new AppError('No file id or email specified', 400));
   }
-  console.log(id);
-  const file = await File.findById(id).select('+mailSent');
+
+  const file = await File.findOne({ driveId: id }).select('+mailSent');
+
   if (!file) {
     return next(new AppError('File not found', 404));
   }
-  const filename = file.filename;
-  const filePath = path.join(__dirname, '..', 'uploads', filename);
-  const options = {
-    to: address,
-    subject: 'File',
-    message: 'Sending the File to you',
-    attachment: [
-      {
-        path: filePath,
-      },
-    ],
-  };
-  mailHandler.mailHandler(options);
-  file.mailSent++;
-  file.save();
-  res.status(200).json({
-    status: 'success',
-  });
+
+  try {
+    const response = await driveService.files.get(
+      { fileId: file.driveId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+
+    const filePath = path.join(__dirname, '..', 'tmp', file.filename);
+
+    // Create a write stream to a temporary file
+    const dest = fs.createWriteStream(filePath);
+
+    // Pipe the response stream to the file
+    await new Promise((resolve, reject) => {
+      response.data.pipe(dest).on('finish', resolve).on('error', reject);
+    });
+
+    const json_File = {
+      name: 'solomon',
+      age: '234',
+    };
+    // Check if file was written
+    if (!fs.existsSync(filePath)) {
+      throw new Error('File was not created in the tmp directory');
+    }
+    const fileData = fs.readFileSync(filePath);
+
+    // Prepare email options
+    const options = {
+      from: process.env.MAIL_USER,
+      to: address,
+      subject: 'File',
+      html: '<p>Attached is your file.</p>',
+      attachments: [
+        {
+          content: fileData.toString('base64'), // Convert file to base64 format
+          filename: file.filename,
+          type: file.mimetype, // Mime type of the file
+          disposition: 'attachment', // Specify as attachment
+        },
+      ],
+    };
+
+    // Send email with attachment
+    await mailHandler.mailHandler(options);
+    // Delete the temporary file after sending the email
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Failed to delete temporary file:', err);
+      }
+    });
+
+    // Update file metadata
+    file.mailSent++;
+    await file.save();
+
+    res.status(200).json({
+      status: 'success',
+    });
+  } catch (error) {
+    next(new AppError(error.message, 400)); // Forward the error to the global error handler
+  }
 });

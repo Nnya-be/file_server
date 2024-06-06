@@ -46,6 +46,12 @@ const userSchema = new mongoose.Schema({
     default: true,
     select: false,
   },
+  verificationToken: String,
+  verificationExpiry: Date,
+  verified: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.pre('save', function (next) {
@@ -90,6 +96,17 @@ userSchema.methods.generateResetToken = function () {
     .update(token)
     .digest('hex');
   this.passwordResetExpire = Date.now() + 3 * 60 * 1000;
+
+  return token;
+};
+userSchema.methods.generateVerificationToken = function () {
+  const token = crypto.randomBytes(32).toString('hex');
+
+  this.verificationToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+  this.verificationExpiry = Date.now() + 3 * 60 * 1000;
 
   return token;
 };
