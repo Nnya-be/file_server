@@ -38,8 +38,9 @@ module.exports.createUser = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role,
   });
+
   res.status(201).json({
     status: 'success',
-    user,
+    newUser,
   });
 });

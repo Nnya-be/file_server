@@ -41,6 +41,10 @@ const createToken = (user, statusCode, res) => {
 
 /** Signs Up a user */
 module.exports.signUp = catchAsync(async (req, res, next) => {
+  if (!req.body) {
+    return next(new AppError('Provide user details!', 401));
+  }
+
   const newUser = await User.create({
     username: req.body.username,
     email: req.body.email,
@@ -48,7 +52,109 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  createToken(newUser, 201, res);
+  const token = newUser.generateVerificationToken();
+  await newUser.save({ validateBeforeSave: false });
+  const verificationUrl = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/verify/${token}`;
+  const html = `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Password Reset</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+          }
+          .container {
+              width: 100%;
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #fff;
+              padding: 20px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              border-radius: 8px;
+          }
+          h1 {
+              font-size: 28px;
+              color: #333;
+          }
+          p {
+              font-size: 20px;
+              color: #555;
+              line-height: 1.5;
+          }
+          a {
+              display: inline-block;
+              background-color: #007bff;
+              color: #fff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 20px;
+          }
+          a:hover {
+              background-color: #0056b3;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <h1>User Verification Code</h1>
+          <p>
+              Hello, ${newUser.username}, welcome to Lizzy's Ent. Please click on the button below to verify your account.
+              <br/>
+              This verification link is only valid for 3 mins. Thank You.
+          </p>
+          <p>
+              <a href="${verificationUrl}">Verify Account</a>
+          </p>
+      </div>
+  </body>
+  </html>`;
+
+  try {
+    await mailHandler({
+      from: process.env.MAIL_USER,
+      to: newUser.email,
+      subject: 'Account Verification',
+      html,
+    });
+    createToken(newUser, 201, res);
+  } catch (err) {
+    newUser.verificationToken = undefined;
+    newUser.verificationExpiry = undefined;
+    await newUser.save({ validateBeforeSave: false });
+
+    return next(new AppError('Error on sending mail!', 500));
+  }
+});
+module.exports.verifyUser = catchAsync(async (req, res, next) => {
+  const token = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  const user_document = await User.findOne({
+    verificationToken: token,
+    verificationExpiry: { $gte: Date.now() },
+  });
+
+  if (!user_document) {
+    return next(new AppError('Invalid link or token', 400));
+  }
+
+  user_document.verified = true;
+  user_document.verificationToken = undefined;
+  user_document.verificationExpiry = undefined;
+  await user_document.save({ validateBeforeSave: false });
+  res.status(200).json({
+    status: 'success',
+    message: 'Account Verified Successfully!',
+  });
 });
 
 /** Logs in a user */
@@ -128,14 +234,70 @@ module.exports.forgotPassword = catchAsync(async (req, res, next) => {
     'host'
   )}/api/v1/users/resetPassword/${reset_token}`;
 
-  const message = `Forgot Password? Click on the link below to submit your request. If you did not request this Please ensure your account is not being breached or ignore.`;
+  const html = `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Password Reset</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 0;
+          }
+          .container {
+              width: 100%;
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: #fff;
+              padding: 20px;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              border-radius: 8px;
+          }
+          h1 {
+              font-size: 28px;
+              color: #333;
+          }
+          p {
+              font-size: 20px;
+              color: #555;
+              line-height: 1.5;
+          }
+          a {
+              display: inline-block;
+              background-color: #007bff;
+              color: #fff;
+              padding: 10px 20px;
+              text-decoration: none;
+              border-radius: 5px;
+              margin-top: 20px;
+          }
+          a:hover {
+              background-color: #0056b3;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <h1>Password Reset Request</h1>
+          <p>
+              Forgot Password? Click on the link below to submit your request. If you did not request this, please ensure your account is not being breached or ignore this email.
+          </p>
+          <p>
+              <a href="${reset_url}">Reset Password</a>
+          </p>
+      </div>
+  </body>
+  </html>`;
 
   try {
     await mailHandler({
       from: process.env.MAIL_USER,
       to: user_document.email,
       subject: 'Password Reset',
-      message,
+      html,
     });
 
     res.status(200).json({

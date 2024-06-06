@@ -1,30 +1,31 @@
 const nodemailer = require('nodemailer');
 const AppError = require('../utilities/appError');
+const smtpTransport = require('nodemailer-smtp-transport');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+const sendgrid = require('@sendgrid/mail');
 
-module.exports.mailHandler = async (options) => {
-  /** Creating the nodemailer transport configuration */
-  const transpoter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST,
-    port: process.env.MAIL_PORT,
+const send = sendgrid.setApiKey(process.env.MAIL_PASSWORD);
+const transpoter = nodemailer.createTransport(
+  sendgridTransport({
     auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASSWORD,
+      // api_user: 'akwasioburo@gmail.com',
+      api_key: process.env.MAIL_PASSWORD,
     },
-  });
+  })
+);
 
-  const message = {
-    from: process.env.MAIL_USER,
-    to: options.to,
-    subject: options.subject,
-    message: options.message | '',
-    url: options.url | '',
-    attachment: options.attachment | '',
-  };
-
-  await transpoter
-    .sendMail(message)
-    .then(console.log('sent'))
-    .catch((err) => {
-      console.log('sent');
-    });
+// transpoter
+//       .sendMail(options)
+module.exports.mailHandler = async (options) => {
+  try {
+    await send.send(options)
+      .then(() => console.log('mail sent successfully'))
+      .catch((err) => {
+        new AppError(err, 400);
+        console.error('Error:', err);
+        throw err;
+      });
+  } catch (error) {
+    console.error('Error occured while sendin mail', error);
+  }
 };
