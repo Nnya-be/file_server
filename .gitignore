@@ -5,3 +5,4 @@ config.env
 .eslintrc.json
 .uploads/
 uploads/*
+creed.*
