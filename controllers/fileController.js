@@ -28,7 +28,9 @@ module.exports.getAllFiles = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'succes',
     results: files.length,
-    files,
+    data: {
+      files,
+    },
   });
 });
 
@@ -46,7 +48,9 @@ module.exports.getFile = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    file,
+    data: {
+      file,
+    },
   });
 });
 
@@ -87,7 +91,9 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'created',
-      data: newFile,
+      data: {
+        newFile,
+      },
     });
   } catch (error) {
     // console.error(error);
@@ -156,7 +162,9 @@ module.exports.searchFile = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    files,
+    data: {
+      files,
+    },
   });
 });
 
@@ -175,8 +183,10 @@ module.exports.getFileStats = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    download: file.numberDownloads,
-    mails: file.mailSent,
+    data: {
+      download: file.numberDownloads,
+      mails: file.mailSent,
+    },
   });
 });
 
