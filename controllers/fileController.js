@@ -2,6 +2,7 @@ const File = require('../models/fileModel');
 const catchAsync = require('../utilities/catchAsync');
 const AppError = require('../utilities/appError');
 const mailHandler = require('../utilities/sendMail');
+const APIFuncs = require('../utilities/apiFunctionalities');
 const fs = require('node:fs');
 const path = require('node:path');
 const { google } = require('googleapis');
@@ -14,13 +15,19 @@ const auth = new google.auth.GoogleAuth({
   scopes: SCOPES,
 });
 const driveService = google.drive({ version: 'v3', auth });
-const parentFolderId =
-  '0B4IadQAzFuYDfl9FQVlKMkZRbEppR1luMFpLWUdpNGJFZWozaG9SY2lmSmVTWGdQMU9lcmM';
-module.exports.getAllFiles = catchAsync(async (req, res, next) => {
-  const files = await File.find();
+const parentFolderId = process.env.FOLDER_ID;
 
+module.exports.getAllFiles = catchAsync(async (req, res, next) => {
+  const features = new APIFuncs(File.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const files = await features.query;
   res.status(200).json({
     status: 'succes',
+    results: files.length,
     files,
   });
 });
