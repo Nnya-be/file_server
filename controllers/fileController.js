@@ -8,8 +8,8 @@ const path = require('node:path');
 const { google } = require('googleapis');
 const stream = require('node:stream');
 
-const KEYFILEPATH = path.join(__dirname, '..', 'creed.json');
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const KEYFILEPATH = path.join('/etc/secrets', 'creed.json');
+const SCOPES = [process.env.SCOPES];
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
   scopes: SCOPES,
@@ -259,7 +259,7 @@ module.exports.sendFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, '..', 'tmp', file.filename);
+    const filePath = path.join(__dirname, 'tmp', file.filename);
 
     // Create a write stream to a temporary file
     const dest = fs.createWriteStream(filePath);
@@ -269,10 +269,6 @@ module.exports.sendFile = catchAsync(async (req, res, next) => {
       response.data.pipe(dest).on('finish', resolve).on('error', reject);
     });
 
-    const json_File = {
-      name: 'solomon',
-      age: '234',
-    };
     // Check if file was written
     if (!fs.existsSync(filePath)) {
       throw new Error('File was not created in the tmp directory');
