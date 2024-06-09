@@ -3,7 +3,7 @@ const catchAsync = require('../utilities/catchAsync');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utilities/appError');
 const { mailHandler } = require('../utilities/sendMail');
-const crypto = require('node:crypto');
+const crypto = require('crypto');
 const { promisify } = require('node:util');
 /** Signs the jwt token */
 const signToken = (user_id) => {
@@ -108,7 +108,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
           <p>
               Hello, ${newUser.username}, welcome to Lizzy's Ent. Please click on the button below to verify your account.
               <br/>
-              This verification link is only valid for 3 mins. Thank You.
+              This verification link is only valid for 5 mins. Thank You.
           </p>
           <p>
               <a href="${verificationUrl}">Verify Account</a>
@@ -134,15 +134,14 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
   }
 });
 module.exports.verifyUser = catchAsync(async (req, res, next) => {
-  const token = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  const token = req.params.token;
+  console.log(token);
   const user_document = await User.findOne({
     verificationToken: token,
     verificationExpiry: { $gte: Date.now() },
   });
 
+  console.log(user_document);
   if (!user_document) {
     return next(new AppError('Invalid link or token', 400));
   }
@@ -212,7 +211,7 @@ module.exports.protect = catchAsync(async (req, res, next) => {
 });
 
 module.exports.restricted = (...role) => {
-  return async (res, req, next) => {
+  return async (req, res, next) => {
     if (!role.includes(req.user.role))
       return next(new AppError('Permission denied for this route', 403));
     next();
@@ -319,6 +318,7 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(req.params.token)
     .digest('hex');
+  console.log(token);
   const user_document = await User.findOne({
     passwordResetToken: token,
     passwordResetExpire: { $gte: Date.now() },

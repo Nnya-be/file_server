@@ -16,5 +16,9 @@ router.post('/resetPassword/:token', authController.resetPassword);
 router
   .route('/')
   .post(userController.createUser)
-  .get(userController.getAllUsers);
+  .get(
+    authController.protect,
+    authController.restricted('admin'),
+    userController.getAllUsers
+  );
 module.exports = router;

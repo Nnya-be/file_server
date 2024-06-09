@@ -1,13 +1,23 @@
 const User = require('../models/userModel');
 const AppError = require('../utilities/appError');
 const catchAsync = require('../utilities/catchAsync');
+const APIFuncs = require('../utilities/apiFunctionalities');
 
 module.exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+  const features = new APIFuncs(User.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const users = await features.query;
   res.status(200).json({
     status: 'success',
-    message: 'Get one user',
-    users,
+    message: 'Geting all users',
+    results: users.length,
+    data: {
+      users,
+    },
   });
 });
 module.exports.getUser = catchAsync(async (req, res, next) => {
@@ -23,7 +33,9 @@ module.exports.getUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Get one user',
-    user,
+    data: {
+      user,
+    },
   });
 });
 
@@ -41,6 +53,8 @@ module.exports.createUser = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'success',
-    newUser,
+    data: {
+      newUser,
+    },
   });
 });
