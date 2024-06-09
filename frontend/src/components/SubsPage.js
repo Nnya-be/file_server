@@ -11,25 +11,30 @@ const SendEmail = () => {
   const [email, setEmail] = useState('');
   const { setFile, file } = useFile();
   const navigate = useNavigate();
-  console.log(file);
+
   const validationSchema = Yup.object({
     email: Yup.string().email('Invalid email address').required('Required'),
   });
 
+  const file_ = JSON.parse(localStorage.getItem('file_'));
+  // console.log(file_);
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await axios.get(
-        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file._id}/${values.email}`,
+      const response = await axios.post(
+        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file_._id}`,
         {
           headers: {
             Authorization: `Bearer ${Cookies.get('jwt')}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
+          data: {
+            email: values.email,
+          },
         }
       );
 
-      console.log(response);
+      // console.log(response);
 
       setSubmitting(false);
       setShowModal(false);
@@ -43,13 +48,13 @@ const SendEmail = () => {
       const token = Cookies.get('jwt');
       // console.log(token);
       const response = await axios.get(
-        `https://file-server-oj1g.onrender.com/api/v1/files/download/${file._id}`,
+        `https://file-server-oj1g.onrender.com/api/v1/files/download/${file_._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
       navigate('/');
-      console.log(response);
+      // console.log(response);
     } catch (err) {
       console.error('Error:', err);
     }
@@ -57,9 +62,10 @@ const SendEmail = () => {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">{file.title}</h2>
-        <p className="pb-8">{file.Description}</p>
+      <div className="bg-white rounded-lg shadow-lg p-6 h-max w-80">
+        <h2 className="text-xl text-center font-bold mb-4">{file_.title}</h2>
+        <h4 className="text-lg font-bold mb-4">{file_.filename}</h4>
+        <p className="pb-8">{file_.description}</p>
         <div className="flex justify-between">
           <button
             onClick={handleDownload}
