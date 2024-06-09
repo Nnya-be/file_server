@@ -13,6 +13,8 @@ app.use(helmet());
 app.use(cors());
 app.use(hpp());
 app.use(xss());
+
+app.set('trust proxy', true);
 const limiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
