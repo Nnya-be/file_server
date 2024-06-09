@@ -41,7 +41,7 @@ module.exports.getFile = catchAsync(async (req, res, next) => {
     return next(new AppError('Specify file  id', 400));
   }
 
-  let file = await File.findById(id);
+  let file = await File.findOne({ driveId: id });
   if (!file) {
     return next(new AppError('File not found', 404));
   }
