@@ -25,6 +25,7 @@ const AuthProvider = ({ children }) => {
     // Example logout logic to clear user data
     setUser(null);
     // Example: Clear token from local storage or cookie
+    Cookies.remove('user');
     Cookies.remove('jwt');
   };
 

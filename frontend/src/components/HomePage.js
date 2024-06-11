@@ -45,6 +45,8 @@ const HomePage = () => {
       // Cookies.set('file', response.data.files);
       navigate('/file');
     } catch (err) {
+      navigate('//not-found');
+
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -53,6 +55,9 @@ const HomePage = () => {
 
   // Fetch data from the server when the component mounts
   useEffect(() => {
+    if (!Cookies.get('user')) {
+      navigate('/login');
+    }
     fetch(
       `https://file-server-oj1g.onrender.com/api/v1/files/?page=${page}&limit=10`
     )

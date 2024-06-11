@@ -22,7 +22,7 @@ const SendEmail = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const response = await axios.post(
-        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file_._id}`,
+        `https://file-server-oj1g.onrender.com/api/v1/files/send/${file_.driveId}`,
         {
           headers: {
             Authorization: `Bearer ${Cookies.get('jwt')}`,
@@ -46,7 +46,7 @@ const SendEmail = () => {
       const token = Cookies.get('jwt');
       // console.log(token);
       const response = await axios.get(
-        `https://file-server-oj1g.onrender.com/api/v1/files/download/${file_._id}`,
+        `https://file-server-oj1g.onrender.com/api/v1/files/download/${file_.driveId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -54,6 +54,7 @@ const SendEmail = () => {
       navigate('/');
       // console.log(response);
     } catch (err) {
+      navigate('/');
       console.error('Error:', err);
     }
   };
