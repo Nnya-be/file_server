@@ -214,7 +214,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       'Content-Disposition',
       `attachment; filename="${file.filename}"`
     );
-    res.setHeader('Content-Type', 'application/octect-stream');
+    res.setHeader('Content-Type', 'application/octet-stream');
 
     // Optionally, you can delete the temporary file after download
     response.data.pipe(res);
