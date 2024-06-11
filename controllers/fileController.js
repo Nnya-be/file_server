@@ -207,6 +207,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
+    console.log(response)
     // Increment the download count
     file.numberDownloads++;
     await file.save();
@@ -228,9 +229,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       console.error('Error streaming file from Google Drive', error);
       next(error);
     });
-    res.download(response.data, (err)=>{
-      console.error('Error downloading file', err)
-    })
+
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(error); // Forward the error to the global error handler
