@@ -22,15 +22,13 @@ const SendEmail = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const token = Cookies.get('jwt');
-      console.log(token);
+      // console.log(token);
       const response = await axios.post(
         `https://file-server-oj1g.onrender.com/api/v1/files/send/${file_.driveId}`,
+        values,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-          },
-          data: {
-            email: values.email,
           },
         }
       );
@@ -51,10 +49,10 @@ const SendEmail = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      navigate('/');
+      // navigate('/');
       // console.log(response);
     } catch (err) {
-      navigate('/');
+      // navigate('/');
       console.error('Error:', err);
     }
   };

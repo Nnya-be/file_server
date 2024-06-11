@@ -193,13 +193,14 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
 
   if (!id) {
-    return next(new AppError('No file name Specified', 400));
+    return next(new AppError('No file name specified', 400));
   }
 
   const file = await File.findOne({ driveId: id }).select('+numberDownloads');
   if (!file) {
     return next(new AppError('File not found', 404));
   }
+
   try {
     const response = await driveService.files.get(
       { fileId: id, alt: 'media' },
@@ -216,7 +217,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     );
     res.setHeader('Content-Type', 'application/octet-stream');
 
-    // Optionally, you can delete the temporary file after download
+    // Stream the file to the response
     response.data.pipe(res);
 
     response.data.on('end', () => {
@@ -224,9 +225,12 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     });
 
     response.data.on('error', (error) => {
-      console.error('Error Streaming file from Google Drvie', error);
+      console.error('Error streaming file from Google Drive', error);
       next(error);
     });
+    res.download(response.data, (err)=>{
+      console.error('Error downloading file', err)
+    })
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(error); // Forward the error to the global error handler
