@@ -174,18 +174,17 @@ module.exports.getFileStats = catchAsync(async (req, res, next) => {
     return next(new AppError('Specify the id of the file!'), 400);
   }
 
-  const file = await File.findById(id).select('+numberDownloads +mailSent');
+  const file = await File.findOne({ driveId: id }).select(
+    '+numberDownloads +mailSent'
+  );
   if (!file) {
     return next(new AppError('No file found for the id!', 404));
   }
 
-  console.log(file);
-
   res.status(200).json({
     status: 'success',
     data: {
-      download: file.numberDownloads,
-      mails: file.mailSent,
+      file,
     },
   });
 });
