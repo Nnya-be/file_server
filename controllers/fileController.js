@@ -207,15 +207,12 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    console.log(response)
     // Increment the download count
     file.numberDownloads++;
     await file.save();
 
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${file.filename}"`
-    );
+    const filename = file.filename | 'Downloaded file';
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/octet-stream');
 
     // Stream the file to the response
@@ -229,7 +226,6 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       console.error('Error streaming file from Google Drive', error);
       next(error);
     });
-
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(error); // Forward the error to the global error handler
