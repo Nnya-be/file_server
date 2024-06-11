@@ -10,7 +10,7 @@ const fileRouter = require('./routes/fileRouter');
 const path = require('path');
 app.use(express.json());
 app.use(helmet());
-app.use(cors());
+app.use(cors({origin:'https:// file-server-cyan-three.vercel.app'}));
 app.use(hpp());
 app.use(xss());
 
