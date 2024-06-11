@@ -206,31 +206,26 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, file.filename);
-
-    // Create a write stream to a temporary file
-    const dest = fs.createWriteStream(filePath);
-
-    // Pipe the response stream to the file
-    await new Promise((resolve, reject) => {
-      response.data.pipe(dest);
-      response.data.on('end', resolve);
-      response.data.on('error', reject);
-    });
-
     // Increment the download count
     file.numberDownloads++;
     await file.save();
 
-    // Use res.download to trigger file download
-    res.download(filePath, file.filename, (err) => {
-      if (err) {
-        console.error('Error downloading file:', err);
-        return next(err); // Forward the error to the global error handler
-      }
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${file.filename}"`
+    );
+    res.setHeader('Content-Type', 'application/octect-stream');
+
+    // Optionally, you can delete the temporary file after download
+    response.data.pipe(res);
+
+    response.data.on('end', () => {
       console.log('Download complete');
-      // Optionally, you can delete the temporary file after download
-      fs.unlinkSync(filePath);
+    });
+
+    response.data.on('error', (error) => {
+      console.error('Error Streaming file from Google Drvie', error);
+      next(error);
     });
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
