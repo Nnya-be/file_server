@@ -45,7 +45,7 @@ const HomePage = () => {
       // Cookies.set('file', response.data.files);
       navigate('/file');
     } catch (err) {
-      navigate('//not-found');
+      navigate('/not-found');
 
       console.error(err);
     } finally {
@@ -240,6 +240,7 @@ const HomePage = () => {
                     <button
                       className="p-2 rounded-full bg-blue-600 text-white mx-5 -mb-4 hover:bg-blue-500 focus:outline-none focus:bg-blue-500"
                       onClick={async () => {
+                        console.log(feed.driveId)
                         try {
                           const response = await axios.get(
                             `https://file-server-oj1g.onrender.com/api/v1/files/${feed.driveId}`

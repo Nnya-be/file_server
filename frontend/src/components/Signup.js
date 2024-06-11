@@ -1,10 +1,9 @@
 import React from 'react';
-import { Formik, Form, Field} from 'formik';
+import { Formik, Form, Field } from 'formik';
 import axios from 'axios';
 import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
-
 
 const SignupSchema = Yup.object().shape({
   email: Yup.string().email('Invalid Email!').required('Email is required'),
@@ -18,10 +17,12 @@ const SignupSchema = Yup.object().shape({
 });
 
 const SignUp = () => {
-
-    const navigate = useNavigate()
-    let {user, login} = useAuth();
-  const handleSubmit = async (values, { setSubmitting, setFieldError, resetForm }) => {
+  const navigate = useNavigate();
+  let { user, login } = useAuth();
+  const handleSubmit = async (
+    values,
+    { setSubmitting, setFieldError, resetForm }
+  ) => {
     try {
       const response = await axios.post(
         'https://file-server-oj1g.onrender.com/api/v1/users/signup',
@@ -30,20 +31,21 @@ const SignUp = () => {
 
       if (response.status === 201) {
         user = response.data;
-        login(user)
-        navigate('/')
+        login(user);
+        navigate('/');
         // Navigate to the next page or show success message
       } else {
         console.error('Error:', response.data);
       }
     } catch (error) {
-        if (error.response.status === 400) {
-            setSubmitting(false);
-          }
-    } finally {
+      // console.log(error.response)
+      if (error.response.status === 400) {
         setSubmitting(false);
-        resetForm();
-        setFieldError('authentication', 'Provide all fields!');
+      }
+    } finally {
+      setSubmitting(false);
+      resetForm();
+      setFieldError('authentication', 'Provide all fields!');
     }
   };
 
