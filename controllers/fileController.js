@@ -206,7 +206,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, '..', 'tmp', file.filename);
+    const filePath = path.join(__dirname, file.filename);
 
     // Create a write stream to a temporary file
     const dest = fs.createWriteStream(filePath);
@@ -258,7 +258,7 @@ module.exports.sendFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, 'tmp', file.filename);
+    const filePath = path.join(__dirname, file.filename);
 
     // Create a write stream to a temporary file
     const dest = fs.createWriteStream(filePath);
