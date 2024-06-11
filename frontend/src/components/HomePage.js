@@ -27,13 +27,13 @@ const HomePage = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     // console.log(values.search);
     setQuery(values.search);
-    
+
     try {
       const token = Cookies.get('jwt');
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/search/?title=${values.search}`,
         {
-          Headers: { Authorization: `Bearer token ${token}` },
+          Headers: { Authorization: `Bearer ${token}` },
         }
       );
       setSubmitting(false);
@@ -43,7 +43,7 @@ const HomePage = () => {
 
       setFile(all[0]);
       // Cookies.set('file', response.data.files);
-      navigate('/subs');
+      navigate('/file');
     } catch (err) {
       console.error(err);
     } finally {
@@ -150,9 +150,21 @@ const HomePage = () => {
               </a>
               <a
                 className="mt-3 text-gray-600 hover:underline sm:mx-3 sm:mt-0"
-                href="files"
+                href="file"
               >
                 files
+              </a>
+              <a
+                className="mt-3 text-gray-600 hover:underline sm:mx-3 sm:mt-0"
+                href="upload"
+              >
+                upload
+              </a>
+              <a
+                className="mt-3 text-gray-600 hover:underline sm:mx-3 sm:mt-0"
+                href="info"
+              >
+                info
               </a>
             </div>
           </nav>
@@ -213,7 +225,7 @@ const HomePage = () => {
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 mt-6">
               {feeds.map((feed) => (
                 <div
-                  key={feed._id}
+                  key={feed.driveId}
                   className="w-full max-w-sm mx-auto rounded-md shadow-md overflow-hidden"
                 >
                   <div
@@ -237,7 +249,7 @@ const HomePage = () => {
                           // Cookies.set('file', response.data.file);
                           setFile(response.data.data.file);
                           // console.log(file);
-                          navigate('/subs');
+                          navigate('/file');
                         } catch (err) {
                           console.error('Error:', err);
                         }
@@ -249,16 +261,31 @@ const HomePage = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path d="M3 3h18M9 3v18m6-18v18M3 12h18" />
+                        <path
+                          d="M17 17H17.01M17.4 14H18C18.9319 14 19.3978 14 19.7654 14.1522C20.2554 14.3552 20.6448 14.7446 20.8478 15.2346C21 15.6022 21 16.0681 21 17C21 17.9319 21 18.3978 20.8478 18.7654C20.6448 19.2554 20.2554 19.6448 19.7654 19.8478C19.3978 20 18.9319 20 18 20H6C5.06812 20 4.60218 20 4.23463 19.8478C3.74458 19.6448 3.35523 19.2554 3.15224 18.7654C3 18.3978 3 17.9319 3 17C3 16.0681 3 15.6022 3.15224 15.2346C3.35523 14.7446 3.74458 14.3552 4.23463 14.1522C4.60218 14 5.06812 14 6 14H6.6M12 15V4M12 15L9 12M12 15L15 12"
+                          stroke="#000000"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
                       </svg>
                     </button>
                   </div>
                   <div className="px-5 py-3">
                     <h3 className="text-gray-700 uppercase">{feed.title}</h3>
                     <span className="text-gray-500 mt-2">
-                      {feed.Description}
+                      {feed.description}
                     </span>
                   </div>
+                  {Cookies.get('user') == 'admin' ? (
+                    <div className="flex justify-between items-center p-8">
+                      <div className="flex justify-between items-center">
+                        <span className="pr-2">{feed.feed.driveId}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
                 </div>
               ))}
             </div>
