@@ -207,25 +207,42 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    // Increment the download count
+    const filePath = path.join(__dirname, file.filename);
+
+    // Create a write stream to a temporary file
+    const dest = fs.createWriteStream(filePath);
+
+    // Pipe the response stream to the file
+    await new Promise((resolve, reject) => {
+      response.data.pipe(dest).on('finish', resolve).on('error', reject);
+    });
+
     file.numberDownloads++;
     await file.save();
+    // Check if file was written
+    if (!fs.existsSync(filePath)) {
+      throw new Error('File was not created in the tmp directory');
+    }
+    const fileData = fs.readFileSync(filePath);
 
-    const filename = file.filename | 'Downloaded file';
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
+    res.sendFile(filePath);
+    // Increment the download count
 
-    // Stream the file to the response
-    response.data.pipe(res);
+    // const filename = file.filename | 'Downloaded file';
+    // res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    // res.setHeader('Content-Type', 'application/octet-stream');
 
-    response.data.on('end', () => {
-      console.log('Download complete');
-    });
+    // // Stream the file to the response
+    // response.data.pipe(res);
 
-    response.data.on('error', (error) => {
-      console.error('Error streaming file from Google Drive', error);
-      next(error);
-    });
+    // response.data.on('end', () => {
+    //   console.log('Download complete');
+    // });
+
+    // response.data.on('error', (error) => {
+    //   console.error('Error streaming file from Google Drive', error);
+    //   next(error);
+    // });
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(error); // Forward the error to the global error handler

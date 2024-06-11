@@ -18,11 +18,9 @@ const SendEmail = () => {
   });
 
   const file_ = JSON.parse(localStorage.getItem('file_'));
-  // console.log(file_);
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const token = Cookies.get('jwt');
-      // console.log(token);
       const response = await axios.post(
         `https://file-server-oj1g.onrender.com/api/v1/files/send/${file_.driveId}`,
         values,
@@ -42,7 +40,6 @@ const SendEmail = () => {
   const handleDownload = async () => {
     try {
       const token = Cookies.get('jwt');
-      console.log(token);
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/download/${file_.driveId}`,
         {
