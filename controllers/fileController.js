@@ -195,23 +195,51 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
   if (!fileId) {
     return next(new AppError('No file ID specified', 400));
   }
+  const file = await File.findOne({ driveId: fileId }).select(
+    '+numberDownloads'
+  );
+
+  if (!file) {
+    return next(new AppError('File not found', 404));
+  }
 
   try {
-    // Fetch file metadata from Google Drive
-    const { data } = await driveService.files.get({
-      fileId: fileId,
-      fields: 'webContentLink', // or 'webContentLink' depending on your needs
+    const response = await driveService.files.get(
+      { fileId: file.driveId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+
+    const filePath = path.join(__dirname, file.filename);
+
+    // Create a write stream to a temporary file
+    const dest = fs.createWriteStream(filePath);
+
+    // Pipe the response stream to the file
+    await new Promise((resolve, reject) => {
+      response.data.pipe(dest).on('finish', resolve).on('error', reject);
     });
 
-    if (!data.webContentLink) {
-      return next(new AppError('Download link not found for this file', 404));
+    // Check if file was written
+    if (!fs.existsSync(filePath)) {
+      throw new Error('File was not created in the tmp directory');
     }
-
-    // Redirect user to the download link
-    res.redirect(data.webContentLink);
+    const fileData = fs.readFileSync(filePath);
+    // Update file metadata
+    file.numberDownloads++;
+    await file.save();
+    res.status('200').json({
+      status: 'success',
+      data: {
+        file: fileData.toString('base64'),
+      },
+    });
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Failed to delete temporary file:', err);
+      }
+    });
   } catch (error) {
-    console.error('Error fetching file from Google Drive:', error);
-    next(new AppError('Error fetching file from Google Drive', 500));
+    next(new AppError(error.message, 400)); // Forward the error to the global error handler
   }
 });
 module.exports.sendFile = catchAsync(async (req, res, next) => {
