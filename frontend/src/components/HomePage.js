@@ -76,6 +76,7 @@ const HomePage = () => {
       });
   }, [page]);
 
+  // console.log(feeds);
   return (
     <div className="bg-white">
       <header>
@@ -230,7 +231,7 @@ const HomePage = () => {
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 mt-6">
               {feeds.map((feed) => (
                 <div
-                  key={feed.driveId}
+                  key={feed._id}
                   className="w-full max-w-sm mx-auto rounded-md shadow-md overflow-hidden"
                 >
                   <div
@@ -240,7 +241,7 @@ const HomePage = () => {
                     <button
                       className="p-2 rounded-full bg-blue-600 text-white mx-5 -mb-4 hover:bg-blue-500 focus:outline-none focus:bg-blue-500"
                       onClick={async () => {
-                        console.log(feed.driveId)
+                        // console.log(feed.driveId);
                         try {
                           const response = await axios.get(
                             `https://file-server-oj1g.onrender.com/api/v1/files/${feed.driveId}`
@@ -284,9 +285,9 @@ const HomePage = () => {
                     </span>
                   </div>
                   {Cookies.get('user') == 'admin' ? (
-                    <div className="flex justify-between items-center p-8">
-                      <div className="flex justify-between items-center">
-                        <span className="pr-2">{feed.feed.driveId}</span>
+                    <div className="flex justify-center items-center p-4">
+                      <div className="flex justify-center flex-col  items-center">
+                        <span className="text-sm  text-wrap text-center">Drive ID: {feed.driveId}</span>
                       </div>
                     </div>
                   ) : (

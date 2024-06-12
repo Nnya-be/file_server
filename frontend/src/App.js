@@ -9,6 +9,7 @@ import Dashboard from './components/AdminLanding';
 import Info from './components/Info';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UploadForm from './components/Upload';
+import VerifyAccountPage from './components/VerifyAccountPage';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
         <Route path="/admin" Component={Dashboard}></Route>
         <Route path="upload/" element={<UploadForm />}></Route>
         <Route path="/info" Component={Info}></Route>
-
+        <Route path="/verify/*" Component={VerifyAccountPage}></Route>
         <Route path="*" Component={PageNotFound}></Route>
       </Routes>
     </Router>

@@ -19,19 +19,19 @@ const validationSchema = Yup.object().shape({
 
 const UploadForm = () => {
   const navigate = useNavigate();
-  const [file, setFile] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const handleFileChange = (event, setFieldValue) => {
-    const file = event.target.files[0];
-    setFile(file);
+    const file = event.currentTarget.files[0];
     setFieldValue('file', file);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (Cookies.get('user') !== 'admin') {
-        navigate('/file');
-      }
-  })
+      navigate('/file');
+    }
+  });
   return (
     <div>
       <header>
@@ -129,53 +129,55 @@ const UploadForm = () => {
               </a>
             </div>
           </nav>
-          {/* <div className="relative mt-6 max-w-lg mx-auto">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
-              <svg
-                className="h-5 w-5 text-gray-500"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-          </div> */}
         </div>
       </header>
-      <div className=" flex justify-center items-center flex-col">
-        {/* <h2 className="text-3xl font-bold">Upload Files</h2> */}
+      <div className="flex justify-center items-center flex-col">
         <Formik
           initialValues={{ title: '', description: '', file: null }}
           validationSchema={validationSchema}
-          onSubmit={(values) => {
+          onSubmit={(values, { resetForm }) => {
             const formData = new FormData();
             formData.append('title', values.title);
             formData.append('description', values.description);
-            formData.append('file', file);
+            formData.append('file', values.file);
+            const token = Cookies.get('jwt');
 
             axios
               .post(
                 'https://file-server-oj1g.onrender.com/api/v1/files/upload',
-                formData
+                formData,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
               )
               .then((response) => {
                 console.log('Success:', response.data);
-                // Handle your success response here
+                setSuccessMessage('File uploaded successfully!');
+                setTimeout(() => {
+                  setSuccessMessage('');
+                  navigate('/');
+                }, 5000); // Clear success message after 5 seconds
+                resetForm(); // Clear form fields
               })
               .catch((error) => {
                 console.error('Error:', error);
-                // Handle your error here
+                setErrorMessage('Failed to upload file. Please try again.');
+                setTimeout(() => setErrorMessage(''), 5000); // Clear error message after 5 seconds
               });
           }}
         >
-          {({ setFieldValue }) => (
+          {({ setFieldValue, resetForm }) => (
             <Form className="max-w-md mx-auto mt-10">
+              {successMessage && (
+                <div className="bg-green-200 text-green-800 p-4 rounded mb-4">
+                  {successMessage}
+                </div>
+              )}
+              {errorMessage && (
+                <div className="bg-red-200 text-red-800 p-4 rounded mb-4">
+                  {errorMessage}
+                </div>
+              )}
               <div className="mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"

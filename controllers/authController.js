@@ -54,9 +54,9 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
 
   const token = newUser.generateVerificationToken();
   await newUser.save({ validateBeforeSave: false });
-  const verificationUrl = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/verify/${token}`;
+  const verificationUrl = `${req.protocol}://file-server-cyan-three.vercel.app/verify/${token}`;
+
+  console.log(verificationUrl);
   const html = `<!DOCTYPE html>
   <html lang="en">
   <head>
@@ -135,13 +135,13 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
 });
 module.exports.verifyUser = catchAsync(async (req, res, next) => {
   const token = req.params.token;
-  console.log(token);
+  // console.log(token);
   const user_document = await User.findOne({
     verificationToken: token,
     verificationExpiry: { $gte: Date.now() },
   });
 
-  console.log(user_document);
+  // console.log(user_document);
   if (!user_document) {
     return next(new AppError('Invalid link or token', 400));
   }
