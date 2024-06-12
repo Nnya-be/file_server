@@ -10,11 +10,11 @@ const SignupSchema = Yup.object().shape({
   password: Yup.string().required('Password is required!'),
 });
 const SignIn = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   let { user, login } = useAuth();
   const handleSubmit = async (
     values,
-    { setSubmitting, setFieldError, resetForm}
+    { setSubmitting, setFieldError, resetForm }
   ) => {
     try {
       const response = await axios.post(
@@ -26,7 +26,7 @@ const SignIn = () => {
         user = response.data;
         login(user);
         // console.log(user);
-        navigate('/')
+        navigate('/');
       }
     } catch (error) {
       //   console.error(error.response.status);
@@ -158,7 +158,12 @@ const SignIn = () => {
                 </div>
                 <div className="pt-8">
                   <p className="flex mx-auto text-sm font-medium leading-tight text-center text-black">
-                    Not have a password?
+                    <a
+                      className="text-black-500 hover:text-blue"
+                      href="/forgot-password"
+                    >
+                      Not have a password?
+                    </a>
                     <a
                       className="ml-auto text-blue-500 hover:text-black"
                       href="/signup"
