@@ -229,9 +229,7 @@ module.exports.forgotPassword = catchAsync(async (req, res, next) => {
   const reset_token = user_document.generateResetToken();
   await user_document.save({ validateBeforeSave: false });
 
-  const reset_url = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${reset_token}`;
+  const reset_url = `${req.protocol}://file-server-cyan-three.vercel.app/reset/${reset_token}`;
 
   const html = `<!DOCTYPE html>
   <html lang="en">

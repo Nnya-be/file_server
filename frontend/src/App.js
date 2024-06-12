@@ -10,6 +10,8 @@ import Info from './components/Info';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UploadForm from './components/Upload';
 import VerifyAccountPage from './components/VerifyAccountPage';
+import ForgetPasswordPage from './components/ForgotPasswordPage';
+import ResetPasswordPage from './components/ResetPassword';
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="upload/" element={<UploadForm />}></Route>
         <Route path="/info" Component={Info}></Route>
         <Route path="/verify/*" Component={VerifyAccountPage}></Route>
+        <Route path="/forgot-password" Component={ForgetPasswordPage}></Route>
+        <Route path="/reset/*" Component={ResetPasswordPage}></Route>
         <Route path="*" Component={PageNotFound}></Route>
       </Routes>
     </Router>

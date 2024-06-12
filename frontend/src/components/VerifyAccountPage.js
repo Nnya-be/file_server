@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const VerifyAccountPage = () => {
+  const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const location = useLocation();
   const code = location.pathname.split('/').at(-1);
+  console.log(code);
   const handleVerifyAccount = async () => {
     try {
       const token = Cookies.get('jwt');
       const response = await axios.post(
         `https://file-server-oj1g.onrender.com/api/v1/users/verify/${code}`
       );
-      console.log(response);
+
       setSuccessMessage('Account verified successfully!');
-      setTimeout(() => setSuccessMessage(''), 5000); // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+        navigate('/');
+      }, 5000); // Clear success message after 5 seconds
     } catch (err) {
       console.error('Verification Unsuccessful!', err);
       setErrorMessage('Failed to verify account. Please try again.');
