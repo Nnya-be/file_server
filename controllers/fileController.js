@@ -195,6 +195,8 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
   if (!fileId) {
     return next(new AppError('No file ID specified', 400));
   }
+
+  // Find the file in your database based on `fileId`
   const file = await File.findOne({ driveId: fileId }).select(
     '+numberDownloads'
   );
@@ -204,46 +206,54 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
   }
 
   try {
+    // Fetch the file stream from Google Drive
     const response = await driveService.files.get(
       { fileId: file.driveId, alt: 'media' },
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, file.filename);
+    // Set up a temporary file path to store the downloaded file
+    const filePath = path.join(__dirname, `${file.filename}.tmp`);
 
-    // Create a write stream to a temporary file
+    // Create a write stream to the temporary file
     const dest = fs.createWriteStream(filePath);
 
     // Pipe the response stream to the file
     await new Promise((resolve, reject) => {
-      response.data.pipe(dest).on('finish', resolve).on('error', reject);
+      response.data
+        .pipe(dest)
+        .on('finish', resolve)
+        .on('error', (error) => {
+          dest.close();
+          fs.unlinkSync(filePath); // Delete the temporary file
+          reject(error);
+        });
     });
 
-    // Check if file was written
-    if (!fs.existsSync(filePath)) {
-      throw new Error('File was not created in the tmp directory');
-    }
-    const fileData = fs.readFileSync(filePath);
-    // Update file metadata
+    // Update file metadata (e.g., increment download count)
     file.numberDownloads++;
     await file.save();
 
-    console.log(fileData.toString('base64'));
-    res.status(200).json({
-      status: 'success',
-      data: {
-        file: fileData.toString('utf-8'),
-      },
-    });
-    fs.unlink(filePath, (err) => {
+    // Send the file to the client for download
+    res.download(filePath, file.filename, (err) => {
       if (err) {
-        console.error('Failed to delete temporary file:', err);
+        console.error('Error sending file:', err);
+        return next(new AppError('Error sending file', 500));
       }
+
+      // Delete the temporary file after sending
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Failed to delete temporary file:', err);
+        }
+      });
     });
   } catch (error) {
-    next(new AppError(error.message, 400)); // Forward the error to the global error handler
+    console.error('Error fetching file from Google Drive:', error);
+    next(new AppError('Error fetching file from Google Drive', 500));
   }
 });
+
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   const address = req.body.email;
