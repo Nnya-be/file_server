@@ -224,12 +224,18 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       throw new Error('File was not created in the tmp directory');
     }
     // const fileData = fs.readFileSync(filePath);
-    
-    res.status(200).sendFile(filePath);
 
-    fs.unlink(filePath, (err) => {
+    res.download(filePath, file.filename, (err) => {
       if (err) {
-        console.error('Failed to delete temporary file:', err);
+        console.error('Error sending the file:', err);
+        next(err);
+      } else {
+        // Optionally, delete the file after download
+        fs.unlink(destPath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('Error deleting the file:', unlinkErr);
+          }
+        });
       }
     });
   } catch (error) {
