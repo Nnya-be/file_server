@@ -227,6 +227,8 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     // Update file metadata
     file.numberDownloads++;
     await file.save();
+
+    console.log(fileData);
     res.status('200').json({
       status: 'success',
       data: {
