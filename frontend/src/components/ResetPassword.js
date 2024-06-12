@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { useLocation } from 'react-router-dom';
+import { useLocation , useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 
 const ResetPasswordPage = () => {
+    const navigate = useNavigate()
   const location = useLocation();
   const token = location.pathname.split('/').at(-1);
   const { login } = useAuth();
@@ -34,7 +35,8 @@ const ResetPasswordPage = () => {
         login(response.data);
       }
       setSuccessMessage('Password reset successfully!');
-      setTimeout(() => setSuccessMessage(''), 5000); // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000); 
+      navigate('/')// Clear success message after 5 seconds
     } catch (error) {
       setErrorMessage('Failed to reset password. Please try again.');
       setTimeout(() => setErrorMessage(''), 5000); // Clear error message after 5 seconds
