@@ -190,57 +190,30 @@ module.exports.getFileStats = catchAsync(async (req, res, next) => {
 });
 
 module.exports.downloadFile = catchAsync(async (req, res, next) => {
-  const id = req.params.file_id;
+  const fileId = req.params.file_id;
 
-  if (!id) {
-    return next(new AppError('No file name specified', 400));
-  }
-
-  const file = await File.findOne({ driveId: id }).select('+numberDownloads');
-  if (!file) {
-    return next(new AppError('File not found', 404));
+  if (!fileId) {
+    return next(new AppError('No file ID specified', 400));
   }
 
   try {
-    const response = await driveService.files.get(
-      { fileId: id, alt: 'media' },
-      { responseType: 'stream' }
-    );
-
-    const filePath = path.join(__dirname, file.filename);
-    const dest = fs.createWriteStream(filePath);
-
-    response.data.pipe(dest);
-    dest.on('finish', async () => {
-      // Increment the download count
-      file.numberDownloads++;
-      await file.save();
-
-      // Send the file to the client
-      res.download(filePath, file.filename, (err) => {
-        if (err) {
-          return next(new AppError('Error sending file', 500));
-        }
-
-        // Optional: Delete the file after sending
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error('Error deleting file:', err);
-          }
-        });
-      });
+    // Fetch file metadata from Google Drive
+    const { data } = await driveService.files.get({
+      fileId: fileId,
+      fields: 'webViewLink', // or 'webContentLink' depending on your needs
     });
 
-    dest.on('error', (err) => {
-      console.error('Error writing file to disk:', err);
-      next(err);
-    });
+    if (!data.webViewLink) {
+      return next(new AppError('Download link not found for this file', 404));
+    }
+
+    // Redirect user to the download link
+    res.redirect(data.webViewLink);
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(new AppError('Error fetching file from Google Drive', 500));
   }
 });
-
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   const address = req.body.email;
