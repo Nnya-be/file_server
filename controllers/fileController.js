@@ -216,24 +216,23 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 
     response.data.pipe(writer);
 
-    writer.on('finish', () => {
-      res.download(filePath, file.filename, (err) => {
-        if (err) {
-          return next(new AppError('Error downloading file', 500));
-        }
-
-        // Optionally, delete the file after sending it
-        fs.unlink(filePath, (err) => {
-          if (err) {
-            console.error('Error deleting file', err);
-          }
-        });
-      });
+    await new Promise((resolve, reject) => {
+      response.data.pipe(writer).on('finish', resolve).on('error', reject);
     });
 
-    writer.on('error', (error) => {
-      console.error('Error writing file', error);
-      next(new AppError('Error writing file', 500));
+    if (!fs.existsSync(filePath)) {
+      throw new Error('File was not created in the tmp directory');
+    }
+    const fileData = fs.readFileSync(filePath);
+    fileData.toString('base64');
+    res.download(filePath, () => {
+      console.error('Unable to download');
+    });
+
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error('Failed to delete temporary file:', err);
+      }
     });
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
