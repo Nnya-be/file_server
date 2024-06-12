@@ -231,7 +231,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
         next(err);
       } else {
         // Optionally, delete the file after download
-        fs.unlink(destPath, (unlinkErr) => {
+        fs.unlink(filePath, (unlinkErr) => {
           if (unlinkErr) {
             console.error('Error deleting the file:', unlinkErr);
           }
