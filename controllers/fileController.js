@@ -7,8 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { google } = require('googleapis');
 const stream = require('node:stream');
-// '/etc/secrets'
-const KEYFILEPATH = path.join(__dirname, '..', 'creed.json');
+
+const KEYFILEPATH = path.join('/etc/secrets', 'creed.json');
 const SCOPES = [process.env.SCOPES];
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
@@ -210,15 +210,13 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     const filePath = path.join(__dirname, file.filename);
     const dest = fs.createWriteStream(filePath);
 
-    console.log(response);
     response.data.pipe(dest);
     dest.on('finish', async () => {
       // Increment the download count
       file.numberDownloads++;
       await file.save();
 
-      res.redirect(`https://drive.google.com/uc?export=download&id=${id}`);
-
+      // Send the file to the client
       res.download(filePath, file.filename, (err) => {
         if (err) {
           return next(new AppError('Error sending file', 500));
