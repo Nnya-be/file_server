@@ -224,10 +224,8 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       throw new Error('File was not created in the tmp directory');
     }
     const fileData = fs.readFileSync(filePath);
-    fileData.toString('base64');
-    res.download(filePath, () => {
-      console.error('Unable to download');
-    });
+    
+    res.status(200).sendFile(filePath)
 
     fs.unlink(filePath, (err) => {
       if (err) {
