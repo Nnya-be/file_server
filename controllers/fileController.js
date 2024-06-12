@@ -207,7 +207,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    const filePath = path.join(__dirname, 'downloads', file.filename);
+    const filePath = path.join(__dirname, file.filename);
     const dest = fs.createWriteStream(filePath);
 
     response.data.pipe(dest);
