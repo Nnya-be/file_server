@@ -228,11 +228,11 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     file.numberDownloads++;
     await file.save();
 
-    console.log(fileData);
+    console.log(fileData.toString('base64'));
     res.status(200).json({
       status: 'success',
       data: {
-        file: fileData.toString('base64'),
+        file: fileData.toString('utf-8'),
       },
     });
     fs.unlink(filePath, (err) => {
