@@ -211,7 +211,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     file.numberDownloads++;
     await file.save();
 
-    const filePath = path.join(__dirname, '../downloads', file.filename);
+    const filePath = path.join(__dirname, file.filename);
     const writer = fs.createWriteStream(filePath);
 
     response.data.pipe(writer);
