@@ -229,7 +229,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     await file.save();
 
     console.log(fileData);
-    res.status('200').json({
+    res.status(200).json({
       status: 'success',
       data: {
         file: fileData.toString('base64'),
