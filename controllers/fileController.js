@@ -200,15 +200,15 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     // Fetch file metadata from Google Drive
     const { data } = await driveService.files.get({
       fileId: fileId,
-      fields: 'webViewLink', // or 'webContentLink' depending on your needs
+      fields: 'webContentLink', // or 'webContentLink' depending on your needs
     });
 
-    if (!data.webViewLink) {
+    if (!data.webContentLink) {
       return next(new AppError('Download link not found for this file', 404));
     }
 
     // Redirect user to the download link
-    res.redirect(data.webViewLink);
+    res.redirect(data.webContentLink);
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
     next(new AppError('Error fetching file from Google Drive', 500));
