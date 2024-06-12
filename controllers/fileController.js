@@ -211,24 +211,33 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     file.numberDownloads++;
     await file.save();
 
-    const filename = file.filename | 'Downloaded file';
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/pdf');
+    const filePath = path.join(__dirname, '../downloads', file.filename);
+    const writer = fs.createWriteStream(filePath);
 
-    // Stream the file to the response
-    response.data.pipe(res, {});
+    response.data.pipe(writer);
 
-    response.data.on('end', () => {
-      console.log('Download complete');
+    writer.on('finish', () => {
+      res.download(filePath, file.filename, (err) => {
+        if (err) {
+          return next(new AppError('Error downloading file', 500));
+        }
+
+        // Optionally, delete the file after sending it
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error('Error deleting file', err);
+          }
+        });
+      });
     });
 
-    response.data.on('error', (error) => {
-      console.error('Error streaming file from Google Drive', error);
-      next(error);
+    writer.on('error', (error) => {
+      console.error('Error writing file', error);
+      next(new AppError('Error writing file', 500));
     });
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
-    next(error); // Forward the error to the global error handler
+    next(new AppError('Error fetching file from Google Drive', 500));
   }
 });
 
