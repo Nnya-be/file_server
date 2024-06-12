@@ -47,7 +47,7 @@ const SendEmail = () => {
         }
       );
       // navigate('/');
-      // console.log(response);
+      console.log(response);
     } catch (err) {
       // navigate('/');
       console.error('Error:', err);

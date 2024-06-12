@@ -207,36 +207,33 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
       { responseType: 'stream' }
     );
 
-    // Increment the download count
-    file.numberDownloads++;
-    await file.save();
+    const filePath = path.join(__dirname, 'downloads', file.filename);
+    const dest = fs.createWriteStream(filePath);
 
-    const filePath = path.join(__dirname, file.filename);
-    const writer = fs.createWriteStream(filePath);
+    response.data.pipe(dest);
+    dest.on('finish', async () => {
+      // Increment the download count
+      file.numberDownloads++;
+      await file.save();
 
-    response.data.pipe(writer);
+      // Send the file to the client
+      res.download(filePath, file.filename, (err) => {
+        if (err) {
+          return next(new AppError('Error sending file', 500));
+        }
 
-    await new Promise((resolve, reject) => {
-      response.data.pipe(writer).on('finish', resolve).on('error', reject);
-    });
-
-    if (!fs.existsSync(filePath)) {
-      throw new Error('File was not created in the tmp directory');
-    }
-    // const fileData = fs.readFileSync(filePath);
-
-    res.download(filePath, file.filename, (err) => {
-      if (err) {
-        console.error('Error sending the file:', err);
-        next(err);
-      } else {
-        // Optionally, delete the file after download
-        fs.unlink(filePath, (unlinkErr) => {
-          if (unlinkErr) {
-            console.error('Error deleting the file:', unlinkErr);
+        // Optional: Delete the file after sending
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error('Error deleting file:', err);
           }
         });
-      }
+      });
+    });
+
+    dest.on('error', (err) => {
+      console.error('Error writing file to disk:', err);
+      next(err);
     });
   } catch (error) {
     console.error('Error fetching file from Google Drive:', error);
