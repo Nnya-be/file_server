@@ -7,8 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { google } = require('googleapis');
 const stream = require('node:stream');
-
-const KEYFILEPATH = path.join('/etc/secrets', 'creed.json');
+// /etc/secrets
+const KEYFILEPATH = path.join(__dirname, '..', 'creed.json');
 const SCOPES = [process.env.SCOPES];
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
@@ -56,10 +56,6 @@ module.exports.getFile = catchAsync(async (req, res, next) => {
 
 module.exports.uploadFile = catchAsync(async (req, res, next) => {
   const file = req.file;
-  // console.log(file);
-
-  const bufferStream = new stream.PassThrough();
-  bufferStream.end(file.buffer); // Ensure this ID is correct and accessible
 
   const { title, description } = req.body; // Ensure title and description are passed in the request body
 
@@ -67,16 +63,15 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
     const response = await driveService.files.create({
       media: {
         mimeType: file.mimetype,
-        body: bufferStream,
+        body: fs.createReadStream(file.path),
       },
       requestBody: {
         name: file.originalname,
+        mimeType: file.mimetype,
         parents: [parentFolderId],
       },
       fields: 'id, name',
     });
-
-    // console.log(response.data.id);
 
     const newFile = new File({
       filename: file.originalname,
@@ -207,41 +202,48 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 
   try {
     // Fetch the file stream from Google Drive
+    // await driveService.permissions.create({
+    //   fileId: file.driveId,
+    //   requestBody: {
+    //     role: 'reader',
+    //     type: 'anyone',
+    //   },
+    // });
+    // const response = await driveService.files.get({
+    //   fileId: file.driveId,
+    //   fields: 'webContentLink',
+    // });
+
+    // res.redirect(response.data.webContentLink);
+
     const response = await driveService.files.get(
       { fileId: file.driveId, alt: 'media' },
       { responseType: 'stream' }
     );
 
-    // Set up a temporary file path to store the downloaded file
     const filePath = path.join(__dirname, `${file.filename}.tmp`);
-
-    // Create a write stream to the temporary file
     const dest = fs.createWriteStream(filePath);
 
-    // Pipe the response stream to the file
     await new Promise((resolve, reject) => {
       response.data
         .pipe(dest)
         .on('finish', resolve)
         .on('error', (error) => {
           dest.close();
-          fs.unlinkSync(filePath); // Delete the temporary file
+          fs.unlinkSync(filePath);
           reject(error);
         });
     });
 
-    // Update file metadata (e.g., increment download count)
     file.numberDownloads++;
     await file.save();
 
-    // Send the file to the client for download
     res.download(filePath, file.filename, (err) => {
       if (err) {
         console.error('Error sending file:', err);
         return next(new AppError('Error sending file', 500));
       }
 
-      // Delete the temporary file after sending
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error('Failed to delete temporary file:', err);
@@ -311,7 +313,7 @@ module.exports.sendFile = catchAsync(async (req, res, next) => {
     // Delete the temporary file after sending the email
     fs.unlink(filePath, (err) => {
       if (err) {
-        console.error('Failed to delete temporary file:', err);
+        return next(new AppError('Failed to delete temporary file!', 500));
       }
     });
 
