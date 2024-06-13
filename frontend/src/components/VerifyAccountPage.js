@@ -9,7 +9,7 @@ const VerifyAccountPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const location = useLocation();
   const code = location.pathname.split('/').at(-1);
-  console.log(code);
+
   const handleVerifyAccount = async () => {
     try {
       const token = Cookies.get('jwt');

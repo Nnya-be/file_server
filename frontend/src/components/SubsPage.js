@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import 'tailwindcss/tailwind.css';
 import Cookies from 'js-cookie';
 import { useFile } from './FileProvider';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 const SendEmail = () => {
   const [showModal, setShowModal] = useState(false);
@@ -43,12 +43,28 @@ const SendEmail = () => {
       const response = await axios.get(
         `https://file-server-oj1g.onrender.com/api/v1/files/download/${file_.driveId}`,
         {
+          responseType: 'blob',
           headers: { Authorization: `Bearer ${token}` },
-          
         }
       );
-      // navigate('/');
-      console.log(response.data);
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Set the download attribute to specify the file name
+      link.setAttribute('download', 'file.pdf'); // Change 'file.pdf' to the desired file name
+
+      // Append the link to the body
+      document.body.appendChild(link);
+
+      // Programmatically click the link to trigger the download
+      link.click();
+
+      // Remove the link from the document
+      document.body.removeChild(link);
+      navigate('/');
     } catch (err) {
       // navigate('/');
       console.error('Error:', err);
