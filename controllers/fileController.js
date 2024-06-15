@@ -6,9 +6,8 @@ const APIFuncs = require('../utilities/apiFunctionalities');
 const fs = require('node:fs');
 const path = require('node:path');
 const { google } = require('googleapis');
-const stream = require('node:stream');
-// /etc/secrets
-const KEYFILEPATH = path.join(__dirname, '..', 'creed.json');
+
+const KEYFILEPATH = path.join('/etc/secrets', 'creed.json');
 const SCOPES = [process.env.SCOPES];
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
@@ -17,6 +16,15 @@ const auth = new google.auth.GoogleAuth({
 const driveService = google.drive({ version: 'v3', auth });
 const parentFolderId = process.env.FOLDER_ID;
 
+/**
+ * Get all files with filtering, sorting, limiting fields, and pagination
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {Promise<void>} = All files in the database or requested fields.
+ * @access Public
+ */
 module.exports.getAllFiles = catchAsync(async (req, res, next) => {
   const features = new APIFuncs(File.find(), req.query)
     .filter()
@@ -26,7 +34,7 @@ module.exports.getAllFiles = catchAsync(async (req, res, next) => {
 
   const files = await features.query;
   res.status(200).json({
-    status: 'succes',
+    status: 'success',
     results: files.length,
     data: {
       files,
@@ -34,6 +42,16 @@ module.exports.getAllFiles = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get a file information using it's driveId.
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files/file_id
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @param {string} id - The ID of the file to retrieve.
+ * @returns {Promise<void>} = One file in the database with the id or not found error.
+ * @access Authenticated
+ */
 module.exports.getFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   // console.log(req.params);
@@ -54,6 +72,18 @@ module.exports.getFile = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Uploads a file from the admin into the database.
+ * @route POST https://file-server-oj1g.onrender.com/api/v1/files
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {Promise<void>} = Uploads a file in the database.
+ * @body {string} [title] - The title of the file.
+ * @body {string} [description] - The new description of the file.
+ * @body {file} [application/pdf] - The file to be uploaded
+ * @access Admin
+ */
 module.exports.uploadFile = catchAsync(async (req, res, next) => {
   const file = req.file;
 
@@ -91,27 +121,20 @@ module.exports.uploadFile = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    // console.error(error);
-    next(new AppError(err, 400)); // Forward the error to the global error handler
+    next(new AppError(err, 500)); // Forward the error to the global error handler
   }
 });
 
-/* const { title, description } = req.body;
-  console.log(title, description);
-  const file = new File({
-    filename: req.file.filename,
-    title,
-    description,
-    mimetype: req.file.mimetype,
-    size: req.file.size,
-  });
-
-  await file.save();
-  res.status(200).json({
-    status: 'success',
-  });
-  */
-
+/**
+ * Delete a file from the database using the drive_id.
+ * @route DELETE https://file-server-oj1g.onrender.com/api/v1/files/file_id
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @param {string} id - The ID of the file to delete.
+ * @returns {Promise<void>} = 200 status code with a success message.
+ * @access Admin
+ */
 module.exports.deleteFile = catchAsync(async (req, res, next) => {
   const { file_id } = req.params;
   if (!file_id) {
@@ -135,10 +158,20 @@ module.exports.deleteFile = catchAsync(async (req, res, next) => {
       message: 'File deleted successfully',
     });
   } catch (error) {
-    next(new AppError(error, 400)); // Forward the error to the global error handler
+    next(new AppError(error, 500)); // Forward the error to the global error handler
   }
 });
 
+/**
+ * Search for files matcthing a particular name or string.
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files/search/
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @query {string} [title] - Search files by title.
+ * @returns {Promise<void>} = All matching files.
+ * @access Authenticated
+ */
 module.exports.searchFile = catchAsync(async (req, res, next) => {
   let query = req.query;
   if (!query) {
@@ -163,6 +196,16 @@ module.exports.searchFile = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get a file Statistics using it's driveId.
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files/getStats/file_id
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @param {string} id - The ID of the file to retrieve.
+ * @returns {Promise<void>} = One file in the database with the id or not found error.
+ * @access Admin
+ */
 module.exports.getFileStats = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   if (!id) {
@@ -184,6 +227,16 @@ module.exports.getFileStats = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Download a file from google drive using the drive_id.
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files/download/file_id
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @param {string} id - The ID of the file to download.
+ * @returns {Promise<void>} = File content to download.
+ * @access Authenticated
+ */
 module.exports.downloadFile = catchAsync(async (req, res, next) => {
   const fileId = req.params.file_id;
 
@@ -191,7 +244,7 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
     return next(new AppError('No file ID specified', 400));
   }
 
-  // Find the file in your database based on `fileId`
+  // Find the file in database based on `fileId`
   const file = await File.findOne({ driveId: fileId }).select(
     '+numberDownloads'
   );
@@ -201,21 +254,6 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
   }
 
   try {
-    // Fetch the file stream from Google Drive
-    // await driveService.permissions.create({
-    //   fileId: file.driveId,
-    //   requestBody: {
-    //     role: 'reader',
-    //     type: 'anyone',
-    //   },
-    // });
-    // const response = await driveService.files.get({
-    //   fileId: file.driveId,
-    //   fields: 'webContentLink',
-    // });
-
-    // res.redirect(response.data.webContentLink);
-
     const response = await driveService.files.get(
       { fileId: file.driveId, alt: 'media' },
       { responseType: 'stream' }
@@ -240,22 +278,31 @@ module.exports.downloadFile = catchAsync(async (req, res, next) => {
 
     res.download(filePath, file.filename, (err) => {
       if (err) {
-        console.error('Error sending file:', err);
         return next(new AppError('Error sending file', 500));
       }
 
       fs.unlink(filePath, (err) => {
         if (err) {
-          console.error('Failed to delete temporary file:', err);
+          return next(new AppError('Error Unlinking file', 500));
         }
       });
     });
   } catch (error) {
-    console.error('Error fetching file from Google Drive:', error);
-    next(new AppError('Error fetching file from Google Drive', 500));
+    return next(new AppError('Error fetching file from Google Drive', 500));
   }
 });
 
+/**
+ * Retrieves a file and sends to a specified user email address.
+ * @route GET https://file-server-oj1g.onrender.com/api/v1/files/send/file_id
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @param {string} id - The ID of the file to download.
+ * @param {string} email - The email of the user to receive the file.
+ * @returns {Promise<void>} = The file to send and the mail sending.
+ * @access Authenticated
+ */
 module.exports.sendFile = catchAsync(async (req, res, next) => {
   const id = req.params.file_id;
   const address = req.body.email;
