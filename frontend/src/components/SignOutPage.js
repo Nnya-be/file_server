@@ -9,19 +9,20 @@ const SignoutPage = () => {
   const navigate = useNavigate();
   const handleSignout = async () => {
     const token = Cookies.get('jwt');
-    await axios
-      .get('https://file-server-oj1g.onrender.com/api/v1/users/logout', {
-        Headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(() => {
-        localStorage.clear();
-        logout();
-        setShowModal(false);
-        navigate('/login');
-      })
-      .catch((err) => {
-        console.error('Error on log out!', err);
-      });
+    try {
+      const response = await axios.get(
+        'https://file-server-oj1g.onrender.com/api/v1/users/logout',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      localStorage.clear();
+      logout();
+      setShowModal(false);
+      navigate('/login');
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
