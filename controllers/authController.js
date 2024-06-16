@@ -312,7 +312,6 @@ module.exports.login = catchAsync(async (req, res, next) => {
  * @throws {Error} If there is an error during the session destruction process, a 500 status code is sent with an error message.
  */
 module.exports.logout = catchAsync(async (req, res, next) => {
-  console.log(req.session);
   req.session.destroy((err) => {
     if (err) {
       return next(new AppError("Couldn't Sign Out User", 500));
