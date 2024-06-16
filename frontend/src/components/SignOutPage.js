@@ -2,16 +2,20 @@ import React, { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 const SignoutPage = () => {
   const [showModal, setShowModal] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const handleSignout = async () => {
-    localStorage.clear();
-    logout();
+    const token = Cookies.get('jwt');
     await axios
-      .get('https://file-server-oj1g.onrender.com/api/v1/users/logout')
+      .get('https://file-server-oj1g.onrender.com/api/v1/users/logout', {
+        Headers: { Authorization: `Bearer ${token}` },
+      })
       .then(() => {
+        localStorage.clear();
+        logout();
         setShowModal(false);
         navigate('/login');
       })
