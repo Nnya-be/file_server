@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import axios from 'axios';
 const SignoutPage = () => {
   const [showModal, setShowModal] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const handleSignout = () => {
+  const handleSignout = async () => {
     localStorage.clear();
     logout();
-
-    setShowModal(false);
-    navigate('/login');
+    await axios
+      .get('https://file-server-oj1g.onrender.com/api/v1/users/logout')
+      .then(() => {
+        setShowModal(false);
+        navigate('/login');
+      })
+      .catch((err) => {
+        console.error('Error on log out!', err);
+      });
   };
 
   return (

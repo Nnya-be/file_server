@@ -73,7 +73,7 @@ const createToken = (user, statusCode, res) => {
  * Sign up a new user, create a verification token, send a verification email,
  * and respond with a JWT token and user data.
  *
- * @route POST /api/v1/auth/signup
+ * @route POST /api/v1/users/signup
  * @access Public
  *
  * @param {Object} req - The request object from Express.
@@ -89,7 +89,7 @@ const createToken = (user, statusCode, res) => {
  *
  * @example
  * // Example POST request to sign up a new user
- * const response = await axios.post('/api/v1/auth/signup', {
+ * const response = await axios.post('/api/v1/users/signup', {
  *   username: 'exampleuser',
  *   email: 'example@example.com',
  *   password: 'password123',
@@ -175,7 +175,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
           </div>
   </body>
   </html>`;
-  
+
   try {
     await mailHandler({
       from: process.env.MAIL_USER,
@@ -187,7 +187,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
     newUser.verificationToken = undefined;
     newUser.verificationExpiry = undefined;
     await newUser.save({ validateBeforeSave: false });
-    
+
     return next(new AppError('Error on sending mail!', 500));
   }
   createToken(newUser, 201, res);
@@ -196,7 +196,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
 /**
  * Verify user account using the verification token.
  *
- * @route GET /api/v1/auth/verify/:token
+ * @route GET /api/v1/users/verify/:token
  * @access Public
  *
  * @param {Object} req - The request object from Express.
@@ -208,7 +208,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
  *
  * @example
  * // Example GET request to verify user account
- * const response = await axios.get('/api/v1/auth/verify/abcdef123456');
+ * const response = await axios.get('/api/v1/users/verify/abcdef123456');
  *
  * @description
  * This function verifies a user account using the provided verification token. It searches
@@ -240,7 +240,7 @@ module.exports.verifyUser = catchAsync(async (req, res, next) => {
 /**
  * Log in user with email and password.
  *
- * @route POST /api/v1/auth/login
+ * @route POST /api/v1/users/login
  * @access Public
  *
  * @param {Object} req - The request object from Express.
@@ -253,7 +253,7 @@ module.exports.verifyUser = catchAsync(async (req, res, next) => {
  *
  * @example
  * // Example POST request to log in user
- * const response = await axios.post('/api/v1/auth/login', {
+ * const response = await axios.post('/api/v1/users/login', {
  *   email: 'user@example.com',
  *   password: 'password123',
  * });
@@ -282,6 +282,48 @@ module.exports.login = catchAsync(async (req, res, next) => {
 
   createToken(user_acc, 200, res);
 });
+
+/**
+ * Logout handler function.
+ *
+ * @function
+ * @name logout
+ * @memberof module:controllers/authController
+ * @description This function handles the user logout process by destroying the user session and clearing the session cookie.
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @returns {Promise<void>} - Sends a JSON response indicating the success or failure of the logout process.
+ *
+ * @example
+ * // Route to handle user logout
+ * router.get('/logout', authController.logout);
+ *
+ * @example
+ * // Sample request
+ * fetch('/api/v1/users/logout', {
+ *   method: 'GET',
+ *   credentials: 'include'
+ * })
+ * .then(response => response.json())
+ * .then(data => console.log(data))
+ * .catch(error => console.error('Error:', error));
+ *
+ * @throws {Error} If there is an error during the session destruction process, a 500 status code is sent with an error message.
+ */
+module.exports.logout = catchAsync(async (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return next(new AppError("Couldn't Sign Out User", 500));
+    }
+    // Clear the cookie
+    res.clearCookie('connect.sid');
+    res.status(200).json({
+      status: 'success',
+      message: 'User logged out successfully!',
+    });
+  });
+});
 /**
  * Middleware to protect routes requiring authentication.
  *
@@ -297,7 +339,7 @@ module.exports.login = catchAsync(async (req, res, next) => {
  *
  * @example
  * // Example usage in a route handler
- * router.get('/protected-route', protect, (req, res) => {
+ * router.get('/protected', protect, (req, res) => {
  *   res.json({ message: 'You are authorized to access this route!' });
  * });
  *
@@ -381,7 +423,7 @@ module.exports.restricted = (...role) => {
 /**
  * Forgot Password: Initiates password reset process for a user.
  *
- * @route POST /api/v1/auth/forgot-password
+ * @route POST /api/v1/users/forgot-password
  * @access Public
  *
  * @param {Object} req - The request object from Express.
@@ -497,7 +539,7 @@ module.exports.forgotPassword = catchAsync(async (req, res, next) => {
 /**
  * Reset Password: Resets the password for a user with a valid reset token.
  *
- * @route POST /api/v1/auth/reset-password/:token
+ * @route POST /api/v1/users/reset-password/:token
  * @access Public
  *
  * @param {Object} req - The request object from Express.
@@ -543,7 +585,7 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
 /**
  * Update Password: Updates the password for the authenticated user.
  *
- * @route PATCH /api/v1/auth/update-password
+ * @route PATCH /api/v1/users/update-password
  * @access Private
  *
  * @param {Object} req - The request object from Express.

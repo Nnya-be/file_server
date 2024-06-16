@@ -7,6 +7,7 @@ const { auth } = require('googleapis/build/src/apis/abusiveexperiencereport');
 router.post('/signup', authController.signUp);
 router.post('/verify/:token', authController.verifyUser);
 router.post('/login', authController.login);
+router.get('/logout', authController.protect, authController.logout);
 router.patch(
   '/updatePassword',
   authController.protect,
