@@ -23,8 +23,7 @@ const VerifyAccountPage = () => {
         navigate('/');
       }, 5000); // Clear success message after 5 seconds
     } catch (err) {
-      console.error('Verification Unsuccessful!', err);
-      setErrorMessage('Failed to verify account. Please try again.');
+      setErrorMessage('Invalid Verification Link!');
       setTimeout(() => setErrorMessage(''), 5000); // Clear error message after 5 seconds
     }
   };

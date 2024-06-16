@@ -48,24 +48,11 @@ const SignIn = () => {
               Lizzy's Enterprise
             </h1>
             <p className="mt-4 text-base font-medium text-gray-500">
-              A rapid approach to collaborate in staging and provisional
-              settings.
+              A rapid approach to collaborate in sending and providing services to all your clients.
             </p>
           </div>
           <div className="mt-8">
-            {/* <button
-              className="inline-flex items-center justify-center w-full h-12 gap-3 px-5 py-3 font-medium duration-200 bg-gray-100 rounded-xl hover:bg-gray-200 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              type="button"
-              aria-label="Sign in with Google"
-            >
-              <ion-icon
-                name="logo-google"
-                role="img"
-                className="md hydrated"
-                aria-label="logo google"
-              ></ion-icon>
-              <span>Sign in with Google</span>
-            </button> */}
+          
 
             <div className="relative py-3">
               <div

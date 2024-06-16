@@ -38,7 +38,7 @@ const ResetPasswordPage = () => {
       setTimeout(() => setSuccessMessage(''), 5000); 
       navigate('/')// Clear success message after 5 seconds
     } catch (error) {
-      setErrorMessage('Failed to reset password. Please try again.');
+      setErrorMessage('Invalid Link or Inconsistent fields!');
       setTimeout(() => setErrorMessage(''), 5000); // Clear error message after 5 seconds
     } finally {
       setSubmitting(false);

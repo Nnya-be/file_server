@@ -17,7 +17,6 @@ function Info() {
   const handleDelete = async () => {
     try {
       const token = Cookies.get('jwt');
-      console.log(fileDetails.driveId);
       const response = await axios.delete(
         `https://file-server-oj1g.onrender.com/api/v1/files/${fileDetails.driveId}`,
         {
