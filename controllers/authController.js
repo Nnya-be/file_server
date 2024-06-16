@@ -170,12 +170,12 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
               This verification link is only valid for 5 mins. Thank You.
           </p>
           <p>
-              <a href="${verificationUrl}">Verify Account</a>
+          <a href="${verificationUrl}">Verify Account</a>
           </p>
-      </div>
+          </div>
   </body>
   </html>`;
-
+  
   try {
     await mailHandler({
       from: process.env.MAIL_USER,
@@ -183,14 +183,14 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
       subject: 'Account Verification',
       html,
     });
-    createToken(newUser, 201, res);
   } catch (err) {
     newUser.verificationToken = undefined;
     newUser.verificationExpiry = undefined;
     await newUser.save({ validateBeforeSave: false });
-
+    
     return next(new AppError('Error on sending mail!', 500));
   }
+  createToken(newUser, 201, res);
 });
 
 /**
@@ -223,7 +223,6 @@ module.exports.verifyUser = catchAsync(async (req, res, next) => {
     verificationToken: token,
   });
 
-  // console.log(user_document);
   if (!user_document) {
     return next(new AppError('Invalid link or token', 400));
   }
