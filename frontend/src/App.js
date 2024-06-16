@@ -12,6 +12,7 @@ import UploadForm from './components/Upload';
 import VerifyAccountPage from './components/VerifyAccountPage';
 import ForgetPasswordPage from './components/ForgotPasswordPage';
 import ResetPasswordPage from './components/ResetPassword';
+import SignoutPage from './components/SignOutPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route exact path="/" Component={HomePage}></Route>
         <Route path="/login" Component={SignIn}></Route>
         <Route path="/signup" Component={SignUp}></Route>
+        <Route path="/logout" Component={SignoutPage}></Route>
         <Route path="/not-found" Component={FileNotFound}></Route>
         <Route path="/file" Component={SendEmail}></Route>
         <Route path="/admin" Component={Dashboard}></Route>

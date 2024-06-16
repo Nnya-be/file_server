@@ -58,8 +58,7 @@ const SignUp = () => {
               Lizzy's Enterprise
             </h1>
             <p className="mt-4 text-base font-medium text-gray-500">
-              A rapid approach to collaborate in staging and provisional
-              settings.
+              Your go-to platform for easy file sharing register with us and hassle no more.
             </p>
           </div>
           <div className="mt-8">

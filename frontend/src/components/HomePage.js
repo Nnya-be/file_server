@@ -35,12 +35,14 @@ const HomePage = () => {
       );
       setSubmitting(false);
       const all = response.data.data.files;
-      localStorage.setItem('file_', JSON.stringify(response.data.data.files[0]));
+      localStorage.setItem(
+        'file_',
+        JSON.stringify(response.data.data.files[0])
+      );
       navigate('/file');
     } catch (err) {
       console.error(err);
       navigate('/not-found');
-
     } finally {
       setSubmitting(false);
     }
@@ -164,6 +166,12 @@ const HomePage = () => {
                 href="info"
               >
                 info
+              </a>
+              <a
+                className="mt-3 text-gray-600 hover:underline sm:mx-3 sm:mt-0"
+                href="logout"
+              >
+                signout
               </a>
             </div>
           </nav>

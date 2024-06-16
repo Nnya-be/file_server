@@ -127,6 +127,12 @@ const UploadForm = () => {
               >
                 info
               </a>
+              <a
+                className="mt-3 text-gray-600 hover:underline sm:mx-3 sm:mt-0"
+                href="logout"
+              >
+                signout
+              </a>
             </div>
           </nav>
         </div>
@@ -135,13 +141,13 @@ const UploadForm = () => {
         <Formik
           initialValues={{ title: '', description: '', file: null }}
           validationSchema={validationSchema}
-          onSubmit={(values, { resetForm }) => {
+          onSubmit={(values, { resetForm , setSubmitting }) => {
             const formData = new FormData();
             formData.append('title', values.title);
             formData.append('description', values.description);
             formData.append('file', values.file);
             const token = Cookies.get('jwt');
-
+            setSubmitting(true)
             axios
               .post(
                 'https://file-server-oj1g.onrender.com/api/v1/files/upload',
@@ -151,22 +157,22 @@ const UploadForm = () => {
                 }
               )
               .then((response) => {
-                console.log('Success:', response.data);
                 setSuccessMessage('File uploaded successfully!');
                 setTimeout(() => {
                   setSuccessMessage('');
                   navigate('/');
                 }, 5000); // Clear success message after 5 seconds
+                setSubmitting(false)
                 resetForm(); // Clear form fields
               })
               .catch((error) => {
-                console.error('Error:', error);
                 setErrorMessage('Failed to upload file. Please try again.');
                 setTimeout(() => setErrorMessage(''), 5000); // Clear error message after 5 seconds
+                setSubmitting(false)
               });
           }}
         >
-          {({ setFieldValue, resetForm }) => (
+          {({ setFieldValue, resetForm , isSubmitting}) => (
             <Form className="max-w-md mx-auto mt-10">
               {successMessage && (
                 <div className="bg-green-200 text-green-800 p-4 rounded mb-4">
@@ -237,12 +243,13 @@ const UploadForm = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <button
-                  type="submit"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Upload
-                </button>
+              <button
+            type="submit"
+            className={`bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Uploading...' : 'Upload'}
+          </button>
               </div>
             </Form>
           )}
