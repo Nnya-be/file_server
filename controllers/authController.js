@@ -218,7 +218,7 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
  */
 module.exports.verifyUser = catchAsync(async (req, res, next) => {
   const token = req.params.token;
-  // console.log(token);
+  console.log(token);
   const user_document = await User.findOne({
     verificationToken: token,
   });
