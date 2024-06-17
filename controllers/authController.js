@@ -217,7 +217,10 @@ module.exports.signUp = catchAsync(async (req, res, next) => {
  * If no user is found or the token is invalid or expired, it returns an error.
  */
 module.exports.verifyUser = catchAsync(async (req, res, next) => {
-  const token = req.params.token;
+  const token = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
   console.log(token);
   const user_document = await User.findOne({
     verificationToken: token,
@@ -565,7 +568,6 @@ module.exports.resetPassword = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(req.params.token)
     .digest('hex');
-  console.log(token);
   const user_document = await User.findOne({
     passwordResetToken: token,
     passwordResetExpire: { $gte: Date.now() },
