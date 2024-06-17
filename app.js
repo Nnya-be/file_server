@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const xss = require('xss-clean');
 const rateLimiter = require('express-rate-limit');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const cors = require('cors');
 const userRouter = require('./routes/userRouter');
 const fileRouter = require('./routes/fileRouter');
@@ -16,12 +17,18 @@ app.use(cors({ origin: '*' }));
 app.use(hpp());
 app.use(xss());
 
-app.use(session({
-  secret: process.env.JWT_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true } // Set to true if using HTTPS
-}));
+app.use(
+  session({
+    store: new FileStore({
+      path: './sessions',
+      ttl: 14 * 24 * 60 * 60,
+    }),
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true, maxAge: 1000 * 60 * 60 * 24 },
+  })
+);
 
 // app.set('trust proxy', true);
 const limiter = rateLimiter({
