@@ -25,7 +25,6 @@ const SignIn = () => {
       if (response.status === 200) {
         user = response.data;
         login(user);
-        // console.log(user);
         navigate('/');
       }
     } catch (error) {

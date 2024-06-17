@@ -45,7 +45,7 @@ function Info() {
         navigate('/file');
       }
       setFileId(file.driveId);
-      //   console.log(file.driveId);
+
       const token = Cookies.get('jwt');
       try {
         const response = await axios.get(
@@ -56,7 +56,6 @@ function Info() {
             },
           }
         );
-        // console.log(response.data.data.file);
         setFile(response.data.data.file);
         setFileId(response.data.data.file.driveId);
       } catch (error) {
@@ -67,7 +66,7 @@ function Info() {
     fetchFileDetails();
   }, []);
   const handleSubmit = async (values, { setSubmitting }) => {
-    // console.log(values.search);
+
 
     try {
       const token = Cookies.get('jwt');
@@ -80,7 +79,6 @@ function Info() {
         }
       );
       setSubmitting(false);
-      //   console.log(response);
       setFile(response.data.data.file);
     } catch (err) {
       console.error(err);

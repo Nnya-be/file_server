@@ -38,7 +38,6 @@ const SignUp = () => {
         console.error('Error:', response.data);
       }
     } catch (error) {
-      // console.log(error.response)
       if (error.response.status === 400) {
         setSubmitting(false);
       }

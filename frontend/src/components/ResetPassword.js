@@ -10,7 +10,7 @@ const ResetPasswordPage = () => {
   const location = useLocation();
   const token = location.pathname.split('/').at(-1);
   const { login } = useAuth();
-  //   console.log(token);
+
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const validationSchema = Yup.object({

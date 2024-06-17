@@ -14,7 +14,7 @@ const AuthProvider = ({ children }) => {
   const login = (userData) => {
     // Example login logic to set user data
     setUser(userData.data.user.role);
-    // console.log(userData.data.user.role);
+
     setToken(userData.token);;
     // Example: Save token to local storage or cookie
     Cookies.set('jwt', userData.token);

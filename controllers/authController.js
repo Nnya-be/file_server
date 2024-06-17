@@ -221,7 +221,6 @@ module.exports.verifyUser = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(req.params.token)
     .digest('hex');
-  console.log(token);
   const user_document = await User.findOne({
     verificationToken: token,
   });
